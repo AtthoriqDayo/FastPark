@@ -1,13 +1,30 @@
-package com.example.ui
+package com.example.fastpark
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -17,48 +34,46 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.R
 
 @Composable
 fun SignUpScreen() {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.DarkGray)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFFB00000), Color.Red),
+                    startY = 10f,
+                    endY = 400f
+            )
+        )
     ) {
         Column(
             modifier = Modifier
+                .padding(top = 50.dp)
                 .fillMaxWidth()
-                .height(180.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color.Red, Color.White)
-                    )
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            // Logo
             Image(
-                painter = painterResource(id = R.drawable.logo), // ganti dengan nama file logo kamu
+                painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(48.dp),
+                    .padding(16.dp)
+                    .size(48.dp)
+                    .background(Color.White, shape = RoundedCornerShape(50)),
                 contentScale = ContentScale.Fit
             )
         }
 
         Column(
             modifier = Modifier
-                .padding(top = 120.dp, start = 24.dp, end = 24.dp)
-                .fillMaxWidth()
-                .background(Color(0xFFEFEFEF), shape = RoundedCornerShape(32.dp))
+                .padding(top = 200.dp)
+                .fillMaxSize()
+                .background(Color.White, shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -66,17 +81,17 @@ fun SignUpScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = firstName,
-                onValueChange = { firstName = it },
-                label = { Text("Nama Depan") },
+                value = userName,
+                onValueChange = { userName = it },
+                label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { Text("Nama Belakang") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth()
             )
 
