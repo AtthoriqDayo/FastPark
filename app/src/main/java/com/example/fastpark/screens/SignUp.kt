@@ -1,7 +1,8 @@
-package com.example.fastpark
+package com.example.fastpark.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,13 +35,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.fastpark.R
 
 @Composable
-fun SignUpScreen() {
-    var userName by remember { mutableStateOf("") }
+fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) {
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -50,8 +54,8 @@ fun SignUpScreen() {
                     colors = listOf(Color(0xFFB00000), Color.Red),
                     startY = 10f,
                     endY = 400f
+                )
             )
-        )
     ) {
         Column(
             modifier = Modifier
@@ -81,8 +85,8 @@ fun SignUpScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = userName,
-                onValueChange = { userName = it },
+                value = username,
+                onValueChange = { username = it },
                 label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -115,9 +119,27 @@ fun SignUpScreen() {
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Tampilkan pesan error jika ada
+            errorMessage?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = it, color = Color.Red, fontSize = 12.sp)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* handle sign up */ },
+                onClick = {
+                    // Validasi sebelum lanjut
+                    errorMessage = when {
+                        username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() ->
+                            "Semua kolom harus diisi"
+                        password != confirmPassword ->
+                            "Password dan konfirmasi tidak sama"
+                        else -> {
+                            onSignUpSuccess()
+                            null // Kosongkan pesan error
+                        }
+                    }
+                },
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -139,9 +161,13 @@ fun SignUpScreen() {
                 Text(
                     "Login",
                     color = Color.Black,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable {
+                        navController.navigate("login")
+                    }
                 )
             }
         }
     }
 }
+
