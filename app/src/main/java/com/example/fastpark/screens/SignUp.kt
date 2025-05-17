@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,10 +36,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.R
+import com.example.fastpark.ui.theme.BrightRed
+import com.example.fastpark.ui.theme.DeepRed
 
 @Composable
 fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) {
@@ -51,7 +58,7 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFB00000), Color.Red),
+                    colors = listOf(DeepRed, BrightRed),
                     startY = 10f,
                     endY = 400f
                 )
@@ -60,7 +67,8 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
         Column(
             modifier = Modifier
                 .padding(top = 50.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(id = R.drawable.logo),
@@ -81,6 +89,13 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Profile",
+                modifier = Modifier.size(100.dp),
+                tint = Color.Black
+            )
+
             Text("Sign Up", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -125,7 +140,8 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
                 Text(text = it, color = Color.Red, fontSize = 12.sp)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.weight(1f))
+
             Button(
                 onClick = {
                     // Validasi sebelum lanjut
@@ -152,7 +168,7 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
                 Text("Sign Up")
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(70.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -167,7 +183,17 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, navController: NavHostController) 
                     }
                 )
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SignUpScreenPreview() {
+    SignUpScreen(
+        onSignUpSuccess = {},
+        navController = rememberNavController()
+    )
 }
 
