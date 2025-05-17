@@ -29,7 +29,7 @@ fun MainScreen() {
                 when (selectedPage) {
                     MainPage.HOME     -> HomeScreen()
                     MainPage.SCAN     -> ScanScreen()
-                    MainPage.SETTINGS -> SettingScreen()
+                    MainPage.SETTINGS -> SettingsScreen()
                 }
             }
 
