@@ -1,4 +1,4 @@
-package com.example.fastpark.screens
+package com.example.fastpark.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -33,27 +35,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.R
 import com.example.fastpark.ui.theme.BrightRed
 import com.example.fastpark.ui.theme.DeepRed
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SignInScreen(
     onSignInSuccess: () -> Unit,
     navController: NavHostController
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val auth = Firebase.auth
+    val focusManager = LocalFocusManager.current
+
+    fun performLogin() {
+        focusManager.clearFocus()
+        if (email.isBlank() || password.isBlank()) {
+            errorMessage = "Email dan password tidak boleh kosong"
+        } else {
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        errorMessage = null
+                        onSignInSuccess()
+                    } else {
+                        errorMessage = "Login gagal: ${task.exception?.message}"
+                    }
+                }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -65,11 +88,12 @@ fun SignInScreen(
                     endY = 400f
                 )
             )
+            .systemBarsPadding()
     ) {
         Column(
             modifier = Modifier
-                .padding(top = 50.dp)
-                .fillMaxWidth(),
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
@@ -83,13 +107,12 @@ fun SignInScreen(
             )
         }
 
-        /* ---------- Kartu putih dengan form login ---------- */
         Column(
             modifier = Modifier
-                .padding(top = 200.dp)
+                .padding(top = 150.dp)
                 .fillMaxSize()
                 .background(
-                    Color.White,
+                    color = Color.White,
                     shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                 )
                 .padding(24.dp),
@@ -102,31 +125,45 @@ fun SignInScreen(
                 tint = Color.Black
             )
 
-            Text("Sign In", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Sign In",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            /* ---------- Username ---------- */
+            // Email
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            /* ---------- Password ---------- */
+            // Password
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        performLogin()
+                    }
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            /* ---------- Pesan error (jika ada) ---------- */
+            // Error message
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it, color = Color.Red, fontSize = 12.sp)
@@ -134,19 +171,9 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            /* ---------- Tombol Login ---------- */
+            // Sign In button
             Button(
-                onClick = {
-                    errorMessage = when {
-                        username.isBlank() || password.isBlank() ->
-                            "Username dan password tidak boleh kosong"
-                        username == "admin" && password == "admin123" -> {
-                            onSignInSuccess()
-                            null
-                        }
-                        else -> "Username atau password salah"
-                    }
-                },
+                onClick = { performLogin() },
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
@@ -161,6 +188,7 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Google Sign In placeholder
             Button(
                 onClick = {
                     // TODO: Tambahkan logika autentikasi Google di sini
@@ -182,36 +210,25 @@ fun SignInScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Continue with Google")
             }
-            
-            Spacer(modifier = Modifier.height(70.dp))
 
-            /* ---------- Link ke Sign‑Up ---------- */
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sign up navigation
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text("Belum punya akun? ")
                 Text(
                     "SignUp",
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = BrightRed,
                     modifier = Modifier.clickable {
                         navController.navigate("signup")
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignInScreenPreview() {
-    SignInScreen(
-        onSignInSuccess = {},
-        navController = rememberNavController()
-    )
 }
 

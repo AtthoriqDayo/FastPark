@@ -7,8 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.screens.MainScreen
-import com.example.fastpark.screens.SignInScreen
-import com.example.fastpark.screens.SignUpScreen
+import com.example.fastpark.screens.auth.SignInScreen
+import com.example.fastpark.screens.auth.SignUpScreen
 
 @Composable
 fun AppNavigation() {

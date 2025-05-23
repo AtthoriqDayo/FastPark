@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,15 +55,16 @@ fun HomeScreen(
                         colors = listOf(DeepRed, BrightRed)
                     ),
                     shape = RoundedCornerShape(
-                        bottomStart = 30.dp,
-                        bottomEnd  = 30.dp
+                        bottomStart = 20.dp,
+                        bottomEnd  = 20.dp
                     )
                 )
-                .padding(top = 50.dp, bottom = 24.dp)
+                .statusBarsPadding() // pasangnya di sini!
+                .padding(bottom = 20.dp)
         ) {
             StatusHeader(userName = userName)
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(15.dp))
 
             SearchBar(
                 query         = query,
@@ -73,7 +75,7 @@ fun HomeScreen(
             )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
         BannerSection()
 
         Spacer(Modifier.height(24.dp))
