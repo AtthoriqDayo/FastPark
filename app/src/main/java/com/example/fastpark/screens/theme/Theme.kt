@@ -1,4 +1,4 @@
-package com.example.fastpark.ui.theme
+package com.example.fastpark.screens.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

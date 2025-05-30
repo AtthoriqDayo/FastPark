@@ -1,4 +1,4 @@
-package com.example.fastpark.screens
+package com.example.fastpark.screens.workers
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

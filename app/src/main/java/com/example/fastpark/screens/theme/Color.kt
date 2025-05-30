@@ -1,4 +1,4 @@
-package com.example.fastpark.ui.theme
+package com.example.fastpark.screens.theme
 
 import androidx.compose.ui.graphics.Color
 

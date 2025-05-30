@@ -1,4 +1,4 @@
-package com.example.fastpark.ui.theme
+package com.example.fastpark.screens.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

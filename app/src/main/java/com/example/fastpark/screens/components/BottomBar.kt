@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.fastpark.R
-import com.example.fastpark.ui.theme.BrightRed
-import com.example.fastpark.ui.theme.DeepRed
+import com.example.fastpark.screens.theme.BrightRed
+import com.example.fastpark.screens.theme.DeepRed
 
 
 enum class MainPage {

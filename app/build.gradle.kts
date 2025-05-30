@@ -60,8 +60,38 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.navigation:navigation-compose:2.7.6")
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-appcheck-playintegrity:18.0.0")
+    implementation(libs.androidx.navigation.compose)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation (libs.firebase.appcheck.playintegrity)
+    // Firebase BoM (Bill of Materials)
+    implementation(platform(libs.firebase.bom.v3310)) // Gunakan versi terbaru
+
+    // Firebase Authentication
+    implementation(libs.firebase.auth.ktx)
+
+    // Firebase Realtime Database atau Firestore (pilih salah satu)
+    implementation(libs.firebase.database.ktx) // Untuk Realtime Database
+    // atau
+    implementation(libs.firebase.firestore.ktx) // Untuk Firestore
+
+    implementation (libs.play.services.auth)
+    implementation (libs.google.firebase.auth.ktx)
+    implementation(libs.androidx.constraintlayout)
+
+
+    implementation(libs.androidx.core.ktx.v190) // Versi bisa berbeda
+    implementation(libs.androidx.lifecycle.runtime.ktx.v261) // Versi bisa berbeda
+    implementation(libs.androidx.activity.compose.v170) // Versi bisa berbeda
+    implementation(platform(libs.androidx.compose.bom.v20230300)) // Versi bisa berbeda
+    implementation(libs.ui)
+    implementation(libs.ui.graphics)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.material3) // Atau material jika Anda menggunakan Material 2
+    implementation(libs.androidx.runtime.livedata) // Untuk observeAsState
+    implementation(libs.androidx.lifecycle.viewmodel.compose) // Untuk viewModel()
+    implementation (libs.com.google.firebase.firebase.auth.ktx)
+    implementation (libs.androidx.lifecycle.runtime.compose)
+
+
 }
