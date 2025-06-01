@@ -1,18 +1,8 @@
 package com.example.fastpark.screens.workers
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,11 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
+import com.example.fastpark.viewmodel.AuthViewModel
+import com.example.fastpark.navigation.AppDestinations
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +48,6 @@ fun SettingsScreen() {
                     .align(Alignment.TopStart)
                     .padding(top = 30.dp),
                 verticalAlignment = Alignment.CenterVertically
-
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -98,21 +90,27 @@ fun SettingsScreen() {
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SettingsButton("Profil Anda")
-            SettingsButton("Pengaturan Akun")
-            SettingsButton("Syarat & ketentuan")
-            SettingsButton("Logout")
+            SettingsButton("Profil Anda") {}
+            SettingsButton("Pengaturan Akun") {}
+            SettingsButton("Syarat & ketentuan") {}
+            SettingsButton("Logout") {
+                authViewModel.signOut()
+                navController.navigate(AppDestinations.LOGIN_ROUTE) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun SettingsButton(text: String) {
+fun SettingsButton(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp)
-            .background(Color.LightGray, RoundedCornerShape(12.dp)),
+            .background(Color.LightGray, RoundedCornerShape(12.dp))
+            .clickable { onClick() },
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
@@ -131,5 +129,7 @@ fun SettingsButton(text: String) {
 )
 @Composable
 fun SettingsScreenPreview() {
-    SettingsScreen()
+    // Dummy preview - provide stub ViewModel and NavController if needed for real test
+    // SettingsScreen(navController = ..., authViewModel = ...)
+    Text("Preview not available")
 }

@@ -1,7 +1,6 @@
 // File: AppNavigation.kt
 package com.example.fastpark.navigation
 
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.livedata.observeAsState
 import com.google.firebase.auth.FirebaseUser
 import com.example.fastpark.data.User
@@ -19,7 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.viewmodel.AuthViewModel
 import com.example.fastpark.screens.SignInScreen
 import com.example.fastpark.screens.SignUpScreen
-import com.example.fastpark.screens.workers.HomeScreen
+import com.example.fastpark.screens.workers.WorkerDashboardScreen
 
 
 object AppDestinations {
@@ -127,9 +126,8 @@ private fun determineStartDestination(
 
 @Composable
 fun UserHomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    val userData by authViewModel.userData.observeAsState()
-    val userName = userData?.displayName ?: "User"
-    HomeScreen(userName = userName)
+    WorkerDashboardScreen(navController = navController, authViewModel = authViewModel)
+
 }
 
 @Composable
@@ -139,11 +137,7 @@ fun WorkerHomeScreen(navController: NavHostController, authViewModel: AuthViewMo
         Text("Selamat Datang, Worker ${userData?.displayName ?: ""}!")
         Text("Role Anda: ${userData?.role ?: "Memuat..."}")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            authViewModel.signOut()
-        }) {
-            Text("Logout")
-        }
+
     }
 }
 

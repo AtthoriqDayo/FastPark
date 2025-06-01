@@ -92,6 +92,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose) // Untuk viewModel()
     implementation (libs.com.google.firebase.firebase.auth.ktx)
     implementation (libs.androidx.lifecycle.runtime.compose)
+    implementation (libs.zxing.android.embedded)
+    implementation (libs.core) // Often needed as a core dependency
+
+
 
 
 }

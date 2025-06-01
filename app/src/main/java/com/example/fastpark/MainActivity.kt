@@ -5,12 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import com.example.fastpark.screens.WorkerDashboardScreen // Pastikan impor ini benar
 import com.example.fastpark.navigation.MainScreen // Pastikan impor ini benar
-import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
-import com.google.firebase.auth.FirebaseAuth // Tidak perlu instance auth di sini jika sudah di ViewModel
+
 // import com.google.firebase.auth.ktx.auth // Tidak perlu instance auth di sini
 // import com.google.firebase.ktx.Firebase // Tidak perlu instance auth di sini
 
