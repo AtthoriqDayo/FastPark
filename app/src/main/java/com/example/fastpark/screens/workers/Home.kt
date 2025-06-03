@@ -41,7 +41,7 @@ import com.example.fastpark.screens.theme.DeepRed
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    userName: String = "User"
+    userName: String = "User",
 ) {
     var selectedMenu by remember { mutableStateOf(HomeMenu.PARKING) }
     var searchQuery by remember { mutableStateOf("") }

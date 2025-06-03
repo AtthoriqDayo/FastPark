@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,7 +19,8 @@ import androidx.navigation.NavHostController
 import com.example.fastpark.screens.components.HomeUserMenu
 import com.example.fastpark.screens.components.MenuUser
 import com.example.fastpark.viewmodel.AuthViewModel
-import androidx.compose.runtime.livedata.observeAsState // Tambahkan ini jika belum ada
+
+
 
 
 
@@ -49,11 +51,16 @@ fun MainUser(
             Box(modifier = Modifier.weight(1f)
             ) {
                 when (selectedPage) {
-                    HomeUserMenu.HOMEUSER -> HomeUserScreen(
-                        navController = navController,
-                        authViewModel = authViewModel
-                    )
-                    HomeUserMenu.PARKING -> ParkingUserScreen()
+                    HomeUserMenu.HOMEUSER -> {
+                        val userData by authViewModel.userData.observeAsState()
+                        val userName = userData?.displayName ?: "User"
+                        HomeUserScreen(
+                            userName = userName,
+                            navController = navController,
+                            authViewModel = authViewModel
+                        )
+                    }
+                    HomeUserMenu.PARKING -> UserParkingStatusScreen()
                     HomeUserMenu.MAIL -> MailUserScreen()
                     HomeUserMenu.HISTORY -> HistoryUserScreen()
                 }

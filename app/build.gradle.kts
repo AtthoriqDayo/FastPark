@@ -95,6 +95,8 @@ dependencies {
     implementation (libs.zxing.android.embedded)
     implementation (libs.core)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.barcode.scanning) // Cek versi terbaru
+
 
 
 
