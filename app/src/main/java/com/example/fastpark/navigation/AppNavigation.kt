@@ -25,12 +25,17 @@ import com.example.fastpark.data.User
 import com.example.fastpark.screens.workers.WorkerDashboardScreen
 import com.example.fastpark.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseUser
+import com.example.fastpark.screens.users.MainUser
+import com.example.fastpark.screens.users.UserSettingScreen // Import layar baru
+import com.example.fastpark.screens.users.UserShowQrScreen // Import layar baru
 
 
 object AppDestinations {
     const val LOGIN_ROUTE = "signin"
     const val SIGNUP_ROUTE = "signup"
     const val USER_HOME_ROUTE = "user_home"
+    const val USER_SETTINGS_ROUTE = "user_settings"   // RUTE BARU
+    const val USER_SHOW_QR_ROUTE = "user_show_qr"     // RUTE BARU
     const val WORKER_HOME_ROUTE = "worker_home"
     const val ADMIN_HOME_ROUTE = "admin_home"
 }
@@ -101,6 +106,14 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
                 navController = navController
             )
         }
+
+        composable(AppDestinations.USER_SETTINGS_ROUTE) {
+            UserSettingScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable(AppDestinations.USER_SHOW_QR_ROUTE) { // Gunakan rute baru
+            UserShowQrScreen(navController = navController, authViewModel = authViewModel) // Panggil Composable baru
+        }
+
         composable(AppDestinations.USER_HOME_ROUTE) {
             UserHomeScreen(navController = navController, authViewModel = authViewModel)
         }
@@ -132,19 +145,12 @@ private fun determineStartDestination(
 
 @Composable
 fun UserHomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    WorkerDashboardScreen(navController = navController, authViewModel = authViewModel)
-
+    MainUser(navController = navController, authViewModel = authViewModel)
 }
 
 @Composable
 fun WorkerHomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    val userData by authViewModel.userData.observeAsState()
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Selamat Datang, Worker ${userData?.displayName ?: ""}!")
-        Text("Role Anda: ${userData?.role ?: "Memuat..."}")
-        Spacer(modifier = Modifier.height(16.dp))
-
-    }
+    WorkerDashboardScreen(navController = navController, authViewModel = authViewModel)
 }
 
 @Composable

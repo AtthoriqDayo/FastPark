@@ -24,8 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fastpark.screens.theme.DeepRed
 
+
+
 @Composable
-fun StatusHeader(userName: String, modifier: Modifier = Modifier) {
+fun StatusHeader(
+    userName: String,
+    modifier: Modifier = Modifier,
+    onSettingsClick: () -> Unit, // Tambahkan ini
+    onShowQrClick: () -> Unit,     // Tambahkan ini
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -54,9 +61,7 @@ fun StatusHeader(userName: String, modifier: Modifier = Modifier) {
         Spacer(Modifier.weight(1f))
 
         FloatingActionButton(
-            onClick = { /* Handle Scan click */
-                println("Scan clicked!")
-            },
+            onClick = { onShowQrClick() },
             modifier = Modifier.size(48.dp),
             containerColor = (DeepRed),
             shape = RoundedCornerShape(10.dp)
@@ -71,9 +76,7 @@ fun StatusHeader(userName: String, modifier: Modifier = Modifier) {
 
         Spacer(Modifier.width(5.dp))
         FloatingActionButton(
-            onClick = { /* Handle Settings click */
-                println("Settings clicked!")
-            },
+            onClick = {onSettingsClick()},
             modifier = Modifier.size(48.dp),
             containerColor =(DeepRed),
             shape = RoundedCornerShape(10.dp)

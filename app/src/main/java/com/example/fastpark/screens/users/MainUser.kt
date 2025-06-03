@@ -18,6 +18,8 @@ import androidx.navigation.NavHostController
 import com.example.fastpark.screens.components.HomeUserMenu
 import com.example.fastpark.screens.components.MenuUser
 import com.example.fastpark.viewmodel.AuthViewModel
+import androidx.compose.runtime.livedata.observeAsState // Tambahkan ini jika belum ada
+
 
 
 @Composable fun ParkingUserScreen() = CenterTextUser("Isi Parking User Screen")
@@ -47,7 +49,10 @@ fun MainUser(
             Box(modifier = Modifier.weight(1f)
             ) {
                 when (selectedPage) {
-                    HomeUserMenu.HOMEUSER -> HomeUserScreen()
+                    HomeUserMenu.HOMEUSER -> HomeUserScreen(
+                        navController = navController,
+                        authViewModel = authViewModel
+                    )
                     HomeUserMenu.PARKING -> ParkingUserScreen()
                     HomeUserMenu.MAIL -> MailUserScreen()
                     HomeUserMenu.HISTORY -> HistoryUserScreen()
@@ -59,3 +64,5 @@ fun MainUser(
         }
     }
 }
+
+

@@ -32,8 +32,6 @@ fun WorkerDashboardScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.weight(1f)) {
                 when (selectedPage) {
-                    // Anda mungkin perlu meneruskan navController dan/atau authViewModel
-                    // ke layar-layar ini jika mereka membutuhkannya
                     MainPage.HOME -> {
                         val userData by authViewModel.userData.observeAsState()
                         val userName = userData?.displayName ?: "User"

@@ -35,6 +35,10 @@ import com.example.fastpark.screens.components.SearchUserBar
 import com.example.fastpark.screens.components.StatusHeader
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
+import androidx.compose.runtime.livedata.observeAsState // Untuk mengamati LiveData dari ViewModel
+import androidx.navigation.NavHostController
+import com.example.fastpark.navigation.AppDestinations // Asumsi Anda punya file ini untuk rute
+import com.example.fastpark.viewmodel.AuthViewModel
 
 
 // Definisi HomeUserMenu (asumsi ini sudah ada dan mencakup CHART jika diperlukan)
@@ -45,7 +49,9 @@ import com.example.fastpark.screens.theme.DeepRed
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeUserScreen(
-    userName: String = "User"
+    userName: String = "User",
+    navController: NavHostController, // Tambahkan NavController
+    authViewModel: AuthViewModel      // Tambahkan AuthViewModel
 ) {
     var selectedMenu by remember { mutableStateOf(HomeUserMenu.HOMEUSER) }
     var searchQuery by remember { mutableStateOf("") }
@@ -94,7 +100,15 @@ fun HomeUserScreen(
                     )
                     .padding(top = 50.dp, bottom = 24.dp)
             ) {
-                StatusHeader(userName)
+                StatusHeader(
+                    userName = userName,
+                    onSettingsClick = {
+                        navController.navigate(AppDestinations.USER_SETTINGS_ROUTE) // Navigasi ke User Settings
+                    },
+                    onShowQrClick = {
+                        navController.navigate(AppDestinations.USER_SHOW_QR_ROUTE) // Navigasi ke User Scan QR
+                    }
+                )
 
                 Spacer(Modifier.height(12.dp))
 
