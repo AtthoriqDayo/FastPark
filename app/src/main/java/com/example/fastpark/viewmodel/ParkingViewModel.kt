@@ -1,6 +1,7 @@
 package com.example.fastpark.viewmodel
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -28,49 +29,47 @@ class ParkingViewModel : ViewModel() {
 
     private var sessionListener: ListenerRegistration? = null
 
-    // Tarif parkir per jam (contoh sederhana, bisa lebih kompleks)
-    private val HOURLY_RATE = 1000.0 // Anda menggunakan 1000.0 di kode Anda
+    // Tarif parkir per jam
+    private val HOURLY_RATE = 1000.0
 
     init {
         observeActiveParkingSession()
     }
 
     private fun observeActiveParkingSession() {
-        val userId = auth.currentUser?.uid // Jika Anda beralih ke 'uid' di Firestore, sesuaikan juga query ini
-        if (userId == null) {
+        val userUid = auth.currentUser?.uid
+        if (userUid == null) {
             _activeSession.value = null
-            _parkingDuration.value = "00:00:00" // Reset saat tidak ada user
-            _estimatedCost.value = 0.0        // Reset saat tidak ada user
+            _parkingDuration.value = "00:00:00"
+            _estimatedCost.value = 0.0
             return
         }
 
         sessionListener?.remove()
 
         sessionListener = firestore.collection("parking_sessions")
-            .whereEqualTo("userId", userId) // ATAU "uid" jika Anda sudah ganti di Firestore & model
+            .whereEqualTo("uid", userUid) // Menggunakan "uid"
             .whereEqualTo("status", "active")
             .limit(1)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
+                    Log.e("ParkingVM_User", "Error mendengarkan sesi aktif: ", e)
                     _activeSession.value = null
                     _parkingDuration.value = "00:00:00"
                     _estimatedCost.value = 0.0
-                    // Pertimbangkan untuk menampilkan error ke UI di sini jika perlu
                     return@addSnapshotListener
                 }
 
                 if (snapshots != null && !snapshots.isEmpty) {
-                    val session = snapshots.documents[0].toObject(ParkingSession::class.java)
+                    val sessionDoc = snapshots.documents[0]
+                    Log.d("ParkingVM_User", "Sesi aktif Firestore DITEMUKAN: ID Dokumen = ${sessionDoc.id}, Data = ${sessionDoc.data}")
+                    val session = sessionDoc.toObject(ParkingSession::class.java)
                     _activeSession.value = session
-                    // Panggil calculateDurationAndCost hanya jika sesi benar-benar berubah
-                    // atau jika sesi adalah null sebelumnya dan sekarang ada isinya.
-                    // Ini untuk menghindari kalkulasi ulang yang tidak perlu jika ada update minor lain pada dokumen
-                    // Namun, untuk timer real-time, pemanggilan di sini sudah benar.
                     calculateDurationAndCost(session)
                 } else {
+                    Log.d("ParkingVM_User", "Tidak ada sesi aktif yang ditemukan di Firestore untuk user $userUid.")
                     _activeSession.value = null
-                    _parkingDuration.value = "00:00:00"
-                    _estimatedCost.value = 0.0
+                    calculateDurationAndCost(null)
                 }
             }
     }
@@ -78,13 +77,19 @@ class ParkingViewModel : ViewModel() {
     @SuppressLint("DefaultLocale")
     private fun calculateDurationAndCost(session: ParkingSession?) {
         viewModelScope.launch {
-            val currentSession = _activeSession.value // Gunakan nilai terkini dari StateFlow untuk perbandingan di loop
+            if (session?.entryTimestamp != null && session.status == "active") {
+                Log.d("ParkingVM_User", "Sesi aktif terdeteksi (UID: ${session.uid}). Mereset timer dan biaya untuk memulai perhitungan baru.")
+                _parkingDuration.value = "00:00:00"
+                _estimatedCost.value = 0.0
 
-            if (session?.entryTimestamp != null) {
                 val entryTimeMillis = session.entryTimestamp.toDate().time
 
-                // Loop untuk timer real-time selama sesi aktif
-                while (session.status == "active" && currentSession?.entryTimestamp == session.entryTimestamp && currentSession.status == "active") {
+                while (_activeSession.value?.uid == session.uid && _activeSession.value?.status == "active") {
+                    if (_activeSession.value?.entryTimestamp != session.entryTimestamp) {
+                        Log.w("ParkingVM_User", "EntryTimestamp global berubah untuk sesi aktif, menghentikan loop timer lama untuk sesi ${session.uid}.")
+                        break
+                    }
+
                     val currentTimeMillis = Date().time
                     val diffMillis = currentTimeMillis - entryTimeMillis
 
@@ -105,52 +110,56 @@ class ParkingViewModel : ViewModel() {
                     _estimatedCost.value = hoursParked * HOURLY_RATE
 
                     kotlinx.coroutines.delay(1000)
-                    // Update currentSession di dalam loop jika _activeSession bisa berubah oleh listener lain secara bersamaan
-                    // namun karena listener Firestore ada di ViewModel ini juga, seharusnya aman.
-                    // Untuk lebih aman jika ada modifikasi _activeSession dari luar, bisa baca ulang:
-                    // if (_activeSession.value?.status != "active" || _activeSession.value?.entryTimestamp != session.entryTimestamp) break
                 }
 
-                // Setelah loop selesai (sesi tidak aktif lagi atau sesi berubah)
-                // Pastikan kita menggunakan data 'session' yang paling baru yang mungkin sudah diupdate oleh Firestore listener
-                val latestSessionData = _activeSession.value
-
-                if (latestSessionData != null && latestSessionData.status != "active") {
-                    val localEntryTimestamp = latestSessionData.entryTimestamp // Ambil dari data sesi terbaru
-                    val localExitTimestamp = latestSessionData.exitTimestamp // Ambil dari data sesi terbaru
-
-                    if (localExitTimestamp != null && localEntryTimestamp != null) {
-                        val finalDiffMillis = localExitTimestamp.toDate().time - localEntryTimestamp.toDate().time
-                        val finalSeconds = (finalDiffMillis / 1000) % 60
-                        val finalMinutes = (finalDiffMillis / (1000 * 60)) % 60
-                        val finalHours = (finalDiffMillis / (1000 * 60 * 60))
-                        _parkingDuration.value = String.format("%02d:%02d:%02d", finalHours, finalMinutes, finalSeconds)
-
-                        val currentParkingFee = latestSessionData.parkingFee // Ambil dari data sesi terbaru
-                        _estimatedCost.value = currentParkingFee ?: ((finalDiffMillis / (1000.0 * 60.0 * 60.0)) * HOURLY_RATE)
-                    } else {
-                        // Sesi tidak aktif tapi tidak ada exit/entry timestamp yang valid, reset jika belum sesuai
-                        if(latestSessionData.status != "active" && _parkingDuration.value != "00:00:00") {
-                            _parkingDuration.value = "00:00:00"
-                            _estimatedCost.value = 0.0
-                        }
-                    }
-                } else if (latestSessionData == null) { // Jika sesi menjadi null setelah loop
-                    _parkingDuration.value = "00:00:00"
-                    _estimatedCost.value = 0.0
+                if (_activeSession.value?.uid == session.uid && _activeSession.value?.status != "active") {
+                    Log.d("ParkingVM_User", "Sesi (UID: ${session.uid}) tidak lagi aktif setelah loop timer. Menampilkan nilai final jika ada.")
+                    displayFinalSessionState(_activeSession.value)
                 }
-                // Jika status masih active tapi loop berhenti karena sesi berubah (entryTimestamp beda),
-                // listener akan memanggil calculateDurationAndCost lagi dengan sesi baru.
 
-            } else { // Jika session awal null atau tidak ada entryTimestamp
+            } else if (session != null && session.status != "active") {
+                Log.d("ParkingVM_User", "Sesi tidak aktif terdeteksi (UID: ${session.uid}, Status: ${session.status}). Menampilkan nilai final.")
+                displayFinalSessionState(session)
+            } else {
+                Log.d("ParkingVM_User", "Sesi null atau tidak ada entry timestamp. Mereset tampilan timer/biaya.")
                 _parkingDuration.value = "00:00:00"
                 _estimatedCost.value = 0.0
             }
         }
     }
 
+    @SuppressLint("DefaultLocale")
+    private fun displayFinalSessionState(finalSession: ParkingSession?) {
+        // PERBAIKAN: Membaca exitTimestamp dan entryTimestamp ke variabel lokal
+        val localExitTimestamp = finalSession?.exitTimestamp
+        val localEntryTimestamp = finalSession?.entryTimestamp
+
+        if (localEntryTimestamp != null && localExitTimestamp != null) {
+            // Menggunakan variabel lokal yang nilainya stabil dan sudah di-null-check
+            val finalDiffMillis = localExitTimestamp.toDate().time - localEntryTimestamp.toDate().time
+            if (finalDiffMillis >= 0) {
+                val finalSeconds = (finalDiffMillis / 1000) % 60
+                val finalMinutes = (finalDiffMillis / (1000 * 60)) % 60
+                val finalHours = (finalDiffMillis / (1000 * 60 * 60))
+                _parkingDuration.value = String.format("%02d:%02d:%02d", finalHours, finalMinutes, finalSeconds)
+
+                val currentParkingFee = finalSession.parkingFee // Bisa juga dibaca ke var lokal jika sering diakses/mutable
+                _estimatedCost.value = currentParkingFee ?: ((finalDiffMillis / (1000.0 * 60.0 * 60.0)) * HOURLY_RATE)
+            } else {
+                Log.w("ParkingVM_User", "Durasi parkir final negatif untuk sesi UID: ${finalSession.uid}. Exit: $localExitTimestamp, Entry: $localEntryTimestamp")
+                _parkingDuration.value = "Error Durasi"
+                _estimatedCost.value = finalSession.parkingFee ?: 0.0
+            }
+        } else {
+            Log.d("ParkingVM_User", "Sesi UID: ${finalSession?.uid} status ${finalSession?.status}, tapi exit/entry timestamp tidak lengkap untuk kalkulasi final.")
+            _parkingDuration.value = "N/A"
+            _estimatedCost.value = finalSession?.parkingFee ?: 0.0
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
-        sessionListener?.remove() // Hentikan listener saat ViewModel dihancurkan
+        sessionListener?.remove()
+        Log.d("ParkingVM_User", "ParkingViewModel onCleared, listener removed.")
     }
 }
