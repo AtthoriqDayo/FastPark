@@ -1,6 +1,7 @@
 package com.example.fastpark.screens.components
 
-import androidx.compose.foundation.Image
+// Hapus import Image jika tidak lagi digunakan secara langsung di HomeMenuItem
+// import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,23 +13,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons // Import ini
+import androidx.compose.material.icons.filled.History // Import ikon History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalParking // Import ikon Parking
+import androidx.compose.material.icons.filled.Mail // Import ikon Mail
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon // Import Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.R
 
-enum class HomeMenu { PARKING, MAIL, HISTORY, CHART }
+// Pertahankan enum HomeUserMenu yang ada di sini
+enum class HomeUserMenu { HOMEUSER, PARKING, MAIL, HISTORY }
 
 @Composable
-fun MenuGrid(
-    onMenuClick: (HomeMenu) -> Unit
+fun MenuUser(
+    selectedMenu: HomeUserMenu,
+    onMenuClick: (HomeUserMenu) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -47,28 +55,28 @@ fun MenuGrid(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HomeMenuItem(
-                    iconResId = R.drawable.scooter,
+                    imageVector = Icons.Default.Home,
+                    label = "Home",
+                    modifier = Modifier.weight(1f),
+                    onClick = { onMenuClick(HomeUserMenu.HOMEUSER) }
+                )
+                HomeMenuItem(
+                    imageVector = Icons.Default.LocalParking,
                     label = "Parking",
                     modifier = Modifier.weight(1f),
-                    onClick = { onMenuClick(HomeMenu.PARKING) }
+                    onClick = { onMenuClick(HomeUserMenu.PARKING) }
                 )
                 HomeMenuItem(
-                    iconResId = R.drawable.mail,
+                    imageVector = Icons.Default.Mail,
                     label = "Mail",
                     modifier = Modifier.weight(1f),
-                    onClick = { onMenuClick(HomeMenu.MAIL) }
+                    onClick = { onMenuClick(HomeUserMenu.MAIL) }
                 )
                 HomeMenuItem(
-                    iconResId = R.drawable.history,
+                    imageVector = Icons.Default.History,
                     label = "History",
                     modifier = Modifier.weight(1f),
-                    onClick = { onMenuClick(HomeMenu.HISTORY) }
-                )
-                HomeMenuItem(
-                    iconResId = R.drawable.chart,
-                    label = "Chart",
-                    modifier = Modifier.weight(1f),
-                    onClick = { onMenuClick(HomeMenu.CHART) }
+                    onClick = { onMenuClick(HomeUserMenu.HISTORY) }
                 )
             }
         }
@@ -77,7 +85,7 @@ fun MenuGrid(
 
 @Composable
 private fun HomeMenuItem(
-    iconResId: Int,
+    imageVector: ImageVector,
     label: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -90,11 +98,11 @@ private fun HomeMenuItem(
             .clickable { onClick() }
             .padding(vertical = 8.dp)
     ) {
-        Image(
-            painter = painterResource(id = iconResId),
+        Icon(
+            imageVector = imageVector,
             contentDescription = label,
-            modifier = Modifier
-                .size(36.dp)
+            modifier = Modifier.size(36.dp),
+            tint = Color.Black
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(

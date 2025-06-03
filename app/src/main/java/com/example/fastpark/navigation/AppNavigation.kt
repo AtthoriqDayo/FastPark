@@ -1,12 +1,16 @@
 // File: AppNavigation.kt
 package com.example.fastpark.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import com.google.firebase.auth.FirebaseUser
-import com.example.fastpark.data.User
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -15,10 +19,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.fastpark.viewmodel.AuthViewModel
-import com.example.fastpark.screens.SignInScreen
-import com.example.fastpark.screens.SignUpScreen
+import com.example.fastpark.auth.SignInScreen
+import com.example.fastpark.auth.SignUpScreen
+import com.example.fastpark.data.User
 import com.example.fastpark.screens.workers.WorkerDashboardScreen
+import com.example.fastpark.viewmodel.AuthViewModel
+import com.google.firebase.auth.FirebaseUser
 
 
 object AppDestinations {

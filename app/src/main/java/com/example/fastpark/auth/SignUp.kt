@@ -1,8 +1,9 @@
-// SignIn.kt
-package com.example.fastpark.screens
+// SignUp.kt
+package com.example.fastpark.auth
 
 import android.app.Activity
 import android.util.Log
+import android.util.Patterns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,46 +57,45 @@ import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
-private const val YOUR_WEB_CLIENT_ID = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com"
+private const val YOUR_SIGNUP_WEB_CLIENT_ID = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com"
 
 @Composable
-fun SignInScreen(
+fun SignUpScreen(
+    onSignUpSuccess: () -> Unit,
+    navController: NavHostController,
     authViewModel: AuthViewModel,
-    onNavigateToSignUp: () -> Unit,
-    onSignInSuccess: () -> Unit,
-    navController: NavHostController
+    onNavigateToLogin: () -> Unit
 ) {
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val errorMessage by authViewModel.error.observeAsState()
+    var confirmPassword by remember { mutableStateOf("") }
 
+    val errorMessage by authViewModel.error.observeAsState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val googleSignInClient = remember { Identity.getSignInClient(context) }
     val oneTapClient = remember { Identity.getSignInClient(context) }
 
 
-    val googleSignInLauncher = rememberLauncherForActivityResult(
+    val googleSignUpLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             try {
                 val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
-
                 val googleIdToken = credential.googleIdToken
                 if (googleIdToken != null) {
                     val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
                     coroutineScope.launch {
                         authViewModel.signInWithGoogleCredential(firebaseCredential)
-                        onSignInSuccess()
+                        onSignUpSuccess()
                     }
-                } else {
-                    Log.e("SignIn", "ID Token null")
                 }
             } catch (e: Exception) {
-                Log.e("SignIn", "Google Sign-In error", e)
+                Log.e("SignUp", "Google Sign-Up Error", e)
             }
         }
     }
@@ -109,14 +109,22 @@ fun SignInScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 200.dp)
-                .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                .background(Color.White, shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(100.dp))
 
-            Text("Sign In", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Sign Up", fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it; authViewModel.clearError() },
+                label = { Text("Username") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = email,
@@ -125,10 +133,21 @@ fun SignInScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it; authViewModel.clearError() },
                 label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it; authViewModel.clearError() },
+                label = { Text("Confirm Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth()
@@ -139,35 +158,52 @@ fun SignInScreen(
                 Text(it, color = Color.Red, fontSize = 12.sp)
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
+                    if (username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                        authViewModel.clearError()
+                        return@Button
+                    }
+                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        authViewModel.clearError()
+                        return@Button
+                    }
+                    if (password.length < 6) {
+                        authViewModel.clearError()
+                        return@Button
+                    }
+                    if (password != confirmPassword) {
+                        authViewModel.clearError()
+                        return@Button
+                    }
+
                     coroutineScope.launch {
-                        authViewModel.signInWithEmailPassword(email, password)
+                        authViewModel.signUpWithEmailPassword(email, password, username)
                         if (authViewModel.error.value == null) {
-                            onSignInSuccess()
+                            onSignUpSuccess()
                         }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Sign In")
+                Text("Sign Up")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
-                    val signInRequest = BeginSignInRequest.builder()
+                    val signUpRequest = BeginSignInRequest.builder()
                         .setGoogleIdTokenRequestOptions(
                             BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                                 .setSupported(true)
-                                .setServerClientId(YOUR_WEB_CLIENT_ID)
+                                .setServerClientId(YOUR_SIGNUP_WEB_CLIENT_ID)
                                 .setFilterByAuthorizedAccounts(false)
                                 .build()
                         )
@@ -175,15 +211,14 @@ fun SignInScreen(
                         .build()
 
                     coroutineScope.launch {
-                        googleSignInClient.beginSignIn(signInRequest)
-                            .addOnSuccessListener {
-                                googleSignInLauncher.launch(
-                                    IntentSenderRequest.Builder(it.pendingIntent.intentSender).build()
-                                )
-                            }
-                            .addOnFailureListener {
-                                Log.e("SignIn", "Google Sign-In failed to start", it)
-                            }
+                        try {
+                            val result = oneTapClient.beginSignIn(signUpRequest).await()
+                            googleSignUpLauncher.launch(
+                                IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                            )
+                        } catch (e: Exception) {
+                            Log.e("SignUp", "Google Sign-Up Init Failed", e)
+                        }
                     }
                 },
                 modifier = Modifier
@@ -200,12 +235,12 @@ fun SignInScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Row {
-                Text("Belum punya akun? ")
+                Text("Sudah punya akun? ")
                 Text(
-                    "Sign Up",
-                    fontWeight = FontWeight.Bold,
+                    "Login",
                     color = Color.Black,
-                    modifier = Modifier.clickable { onNavigateToSignUp() }
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onNavigateToLogin() }
                 )
             }
         }
@@ -214,11 +249,11 @@ fun SignInScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewSignIn() {
-    SignInScreen(
+fun PreviewSignUp() {
+    SignUpScreen(
+        onSignUpSuccess = {},
+        navController = rememberNavController(),
         authViewModel = TODO(),
-        onSignInSuccess = {},
-        onNavigateToSignUp = {},
-        navController = rememberNavController()
+        onNavigateToLogin = {}
     )
 }

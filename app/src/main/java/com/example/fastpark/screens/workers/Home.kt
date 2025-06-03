@@ -1,23 +1,22 @@
 package com.example.fastpark.screens.workers
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,120 +27,135 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.R
 import com.example.fastpark.screens.components.BannerSection
 import com.example.fastpark.screens.components.HomeMenu
 import com.example.fastpark.screens.components.MenuGrid
+import com.example.fastpark.screens.components.SearchUserBar
+import com.example.fastpark.screens.components.WorkerHeader
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
 
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     userName: String = "User"
 ) {
     var selectedMenu by remember { mutableStateOf(HomeMenu.PARKING) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
+    var isSearching by remember { mutableStateOf(false) }
+
+    Scaffold(
+        floatingActionButton = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                FloatingActionButton(
+                    onClick = { /* TODO: Aksi ketika FAB diklik */
+                        println("Floating Action Button clicked!")
+                    },
+                    containerColor = BrightRed,
+                    shape = MaterialTheme.shapes.extraLarge
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Quick Action Button",
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Aksi Cepat",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(DeepRed, BrightRed)
-                    ),
-                    shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
-                )
-                .padding(top = 50.dp, bottom = 24.dp)
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.user),
-                    contentDescription = "Logo",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .size(48.dp)
-                        .border(1.dp, Color.White, RoundedCornerShape(50))
-                )
-                Spacer(Modifier.width(8.dp))
-                Column {
-                    Text("Hi, Selamat datang", color = Color.White, fontSize = 14.sp)
-                    Text(userName, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = "",
-                onValueChange = { /* TODO: search query */ },
-                placeholder = {
-                    Text(
-                        "Cari sesuatu…",
-                        style = TextStyle(textAlign = TextAlign.Start)
-                    )
-                },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null)
-                },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(Color.White, RoundedCornerShape(20.dp)),
-                singleLine = true,
-                shape = RoundedCornerShape(20.dp),
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    textAlign = TextAlign.Start
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(DeepRed, BrightRed)
+                        ),
+                        shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+                    )
+                    .padding(top = 50.dp, bottom = 24.dp)
+            ) {
+                WorkerHeader(userName)
+
+                Spacer(Modifier.height(12.dp))
+
+                SearchUserBar(
+                    query = searchQuery,
+                    onQueryChange = { newQuery ->
+                        searchQuery = newQuery
+                        isSearching = newQuery.isNotEmpty()
+                        // TODO: Anda bisa memicu pencarian data di sini
+                        println("Searching for: $newQuery")
+                    },
+                    onSearchClose = {
+                        isSearching = false
+                        searchQuery = ""
+                        println("Search bar closed.")
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-            )
+            }
 
-        }
+            if (isSearching) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                    // TODO: Di sini Anda akan menampilkan daftar hasil pencarian, mungkin menggunakan LazyColumn
+                    // Contoh: LazyColumn { items(filteredSearchResults) { item -> Text(item.name) } }
+                }
+            } else {
 
-        Spacer(Modifier.height(24.dp))
-        BannerSection()
 
-        Spacer(Modifier.height(24.dp))
-        MenuGrid { selectedMenu = it  }
+                Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
 
-        Spacer(Modifier.height(24.dp))
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            when (selectedMenu) {
-                HomeMenu.PARKING -> ParkingScreen()
-                HomeMenu.MAIL    -> MailScreen()
-                HomeMenu.HISTORY -> HistoryScreen()
-                HomeMenu.CHART   -> ChartScreen()
+                BannerSection() // BalanceCard Anda
+
+                Spacer(Modifier.height(20.dp))
+
+                Spacer(Modifier.height(24.dp))
+                MenuGrid { selectedMenu = it  }
+
+                Spacer(Modifier.height(24.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    when (selectedMenu) {
+                        HomeMenu.PARKING -> ParkingScreen()
+                        HomeMenu.MAIL    -> MailScreen()
+                        HomeMenu.HISTORY -> HistoryScreen()
+                        HomeMenu.CHART   -> ChartScreen()
+                    }
+                }
             }
         }
     }
-}
-
-@Preview(
-    showBackground = true,      // kotak putih di belakang konten
-    showSystemUi  = true,       // status bar, nav bar
-    name = "Home – default"
-)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(userName = "Ihwal Marhamdi")
 }
 
 @Composable fun ParkingScreen() = CenterText("Isi Parking")

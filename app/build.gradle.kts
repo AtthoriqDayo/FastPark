@@ -87,13 +87,15 @@ dependencies {
     implementation(libs.ui)
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
-    implementation(libs.material3) // Atau material jika Anda menggunakan Material 2
-    implementation(libs.androidx.runtime.livedata) // Untuk observeAsState
-    implementation(libs.androidx.lifecycle.viewmodel.compose) // Untuk viewModel()
+    implementation(libs.material3)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation (libs.com.google.firebase.firebase.auth.ktx)
     implementation (libs.androidx.lifecycle.runtime.compose)
     implementation (libs.zxing.android.embedded)
-    implementation (libs.core) // Often needed as a core dependency
+    implementation (libs.core)
+    implementation(libs.androidx.material.icons.extended)
+
 
 
 
