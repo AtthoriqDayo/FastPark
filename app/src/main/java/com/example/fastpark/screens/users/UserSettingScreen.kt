@@ -72,14 +72,16 @@ fun UserSettingScreen(navController: NavHostController, authViewModel: AuthViewM
             }
             // Informasi pengguna di header
             Column(
-                modifier = Modifier.align(Alignment.Center),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top= 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = "Profile",
                     modifier = Modifier.size(80.dp), // Ukuran Avatar sedikit lebih kecil
-                    tint = Color.White // Avatar putih di header merah
+                    tint = Color.Black // Avatar putih di header merah
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
