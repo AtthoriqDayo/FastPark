@@ -1,19 +1,11 @@
 // File: AppNavigation.kt
 package com.example.fastpark.navigation
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -22,12 +14,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.auth.SignInScreen
 import com.example.fastpark.auth.SignUpScreen
 import com.example.fastpark.data.User
+import com.example.fastpark.screens.users.MainUser
+import com.example.fastpark.screens.users.UserSettingScreen
+import com.example.fastpark.screens.users.UserShowQrScreen
 import com.example.fastpark.screens.workers.WorkerDashboardScreen
 import com.example.fastpark.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseUser
-import com.example.fastpark.screens.users.MainUser
-import com.example.fastpark.screens.users.UserSettingScreen // Import layar baru
-import com.example.fastpark.screens.users.UserShowQrScreen // Import layar baru
 
 
 object AppDestinations {
@@ -155,15 +147,5 @@ fun WorkerHomeScreen(navController: NavHostController, authViewModel: AuthViewMo
 
 @Composable
 fun AdminHomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    val userData by authViewModel.userData.observeAsState()
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Selamat Datang, Admin ${userData?.displayName ?: ""}!")
-        Text("Role Anda: ${userData?.role ?: "Memuat..."}")
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            authViewModel.signOut()
-        }) {
-            Text("Logout")
-        }
-    }
+    WorkerDashboardScreen(navController = navController, authViewModel = authViewModel)
 }
