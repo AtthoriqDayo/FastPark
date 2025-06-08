@@ -34,13 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.fastpark.screens.theme.BrightRed
+import com.example.fastpark.navigation.AdminDestinations
 
-object AdminDestinations {
-    const val ACCOUNT_MANAGEMENT_ROUTE = "admin_account_management"
-    const val FINANCIAL_STATS_ROUTE = "admin_financial_stats"
-    const val CUSTOMER_STATS_ROUTE = "admin_customer_stats"
-    const val PARKING_MANAGEMENT_ROUTE = "admin_parking_management"
-}
 
 enum class AdminMainPage(val label: String, val icon: ImageVector, val route: String) {
     ACCOUNT_MANAGEMENT("Akun", Icons.Default.People, AdminDestinations.ACCOUNT_MANAGEMENT_ROUTE),
@@ -77,7 +72,7 @@ fun AdminBottomBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AdminMainPage.values().forEach { page ->
+                AdminMainPage.entries.forEach { page ->
                     AdminMainMenuItem(
                         imageVector = page.icon,
                         label = page.label,

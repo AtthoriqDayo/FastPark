@@ -19,14 +19,20 @@ fun AdminNavGraph(
         composable(AdminDestinations.ACCOUNT_MANAGEMENT_ROUTE) {
             AccountManagementScreen(authViewModel = authViewModel)
         }
+
+        // CORRECT: The ViewModel is passed
         composable(AdminDestinations.FINANCIAL_STATS_ROUTE) {
-            FinancialStatisticsScreen()
+            FinancialStatisticsScreen(authViewModel = authViewModel)
         }
+
+        // CORRECT: The ViewModel is passed
         composable(AdminDestinations.CUSTOMER_STATS_ROUTE) {
-            CustomerStatisticsScreen()
+            CustomerStatisticsScreen(authViewModel = authViewModel)
         }
+
+        // CORRECT: The ViewModel is passed
         composable(AdminDestinations.PARKING_MANAGEMENT_ROUTE) {
-            ParkingManagementScreen()
+            ParkingManagementScreen(authViewModel = authViewModel)
         }
     }
 }

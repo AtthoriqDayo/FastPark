@@ -24,6 +24,8 @@ import com.example.fastpark.viewmodel.AuthViewModel
 import com.example.fastpark.viewmodel.AuthViewModelFactory
 import com.google.firebase.auth.FirebaseUser
 
+
+
 object AppDestinations {
     const val LOGIN_ROUTE = "signin"
     const val SIGNUP_ROUTE = "signup"

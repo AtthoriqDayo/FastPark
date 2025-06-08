@@ -17,9 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.fastpark.viewmodel.AuthViewModel
 
 @Composable
-fun FinancialStatisticsScreen() {
+fun FinancialStatisticsScreen(authViewModel: AuthViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
