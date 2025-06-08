@@ -96,6 +96,9 @@ dependencies {
     implementation (libs.core)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.barcode.scanning) // Cek versi terbaru
+    implementation (libs.androidx.lifecycle.viewmodel.ktx)
+    implementation (libs.androidx.lifecycle.livedata.ktx)
+    implementation (libs.androidx.lifecycle.runtime.ktx.v280)
 
 
 

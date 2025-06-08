@@ -1,7 +1,9 @@
 // SignUp.kt
+@file:Suppress("DEPRECATION")
+
 package com.example.fastpark.auth
 
-import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.util.Log
 import android.util.Patterns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -83,7 +85,7 @@ fun SignUpScreen(
     val googleSignUpLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             try {
                 val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
                 val googleIdToken = credential.googleIdToken

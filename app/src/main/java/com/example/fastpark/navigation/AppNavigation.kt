@@ -1,6 +1,7 @@
-// File: AppNavigation.kt
 package com.example.fastpark.navigation
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,43 +15,52 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fastpark.auth.SignInScreen
 import com.example.fastpark.auth.SignUpScreen
 import com.example.fastpark.data.User
+import com.example.fastpark.screens.admin.AdminDashboardScreen
 import com.example.fastpark.screens.users.MainUser
 import com.example.fastpark.screens.users.UserSettingScreen
 import com.example.fastpark.screens.users.UserShowQrScreen
 import com.example.fastpark.screens.workers.WorkerDashboardScreen
 import com.example.fastpark.viewmodel.AuthViewModel
+import com.example.fastpark.viewmodel.AuthViewModelFactory
 import com.google.firebase.auth.FirebaseUser
-
 
 object AppDestinations {
     const val LOGIN_ROUTE = "signin"
     const val SIGNUP_ROUTE = "signup"
     const val USER_HOME_ROUTE = "user_home"
-    const val USER_SETTINGS_ROUTE = "user_settings"   // RUTE BARU
-    const val USER_SHOW_QR_ROUTE = "user_show_qr"     // RUTE BARU
+    const val USER_SETTINGS_ROUTE = "user_settings"
+    const val USER_SHOW_QR_ROUTE = "user_show_qr"
     const val WORKER_HOME_ROUTE = "worker_home"
     const val ADMIN_HOME_ROUTE = "admin_home"
 }
 
 @Composable
-fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
+fun MainScreen() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(application)
+    )
+
+
     val currentUserSnapshot by authViewModel.currentUser.observeAsState()
     val userDataSnapshot by authViewModel.userData.observeAsState()
-    val context = LocalContext.current
+    val isLoading by authViewModel.isLoading.observeAsState(initial = false) // Amati loading state
 
-    LaunchedEffect(currentUserSnapshot, userDataSnapshot, navController.currentBackStackEntry) {
+    LaunchedEffect(currentUserSnapshot, userDataSnapshot, isLoading) {
         val currentUser = currentUserSnapshot
         val userData = userDataSnapshot
 
         if (currentUser != null) {
-            if (userData == null || userData.uid != currentUser.uid) {
-                authViewModel.fetchUserData(currentUser.uid)
-            }
-
-            userData?.let { userProfile ->
+            if (userData == null && !isLoading) {
+                Log.w("AppNavigation", "currentUser exists but userData is null and not loading. Waiting for data...")
+                // Mungkin perlu menambahkan timeout atau indikator loading di sini
+                return@LaunchedEffect // Jangan lanjutkan navigasi sampai userData ada
+            } else if (userData != null) { // Jika userData sudah tersedia
                 val currentRoute = navController.currentDestination?.route
-                val targetRoute = when (userProfile.role) {
+                val targetRoute = when (userData.role) {
                     "administrator" -> AppDestinations.ADMIN_HOME_ROUTE
                     "worker" -> AppDestinations.WORKER_HOME_ROUTE
                     else -> AppDestinations.USER_HOME_ROUTE
@@ -58,6 +68,7 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
                 if (currentRoute != targetRoute) {
                     navController.navigate(targetRoute) {
                         popUpTo(AppDestinations.LOGIN_ROUTE) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             }
@@ -66,6 +77,7 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
             if (currentRoute != AppDestinations.LOGIN_ROUTE && currentRoute != AppDestinations.SIGNUP_ROUTE) {
                 navController.navigate(AppDestinations.LOGIN_ROUTE) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
                 }
             }
         }
@@ -75,7 +87,8 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
         navController = navController,
         startDestination = determineStartDestination(
             currentUser = currentUserSnapshot,
-            userProfileData = userDataSnapshot
+            userProfileData = userDataSnapshot,
+            isLoading = isLoading
         )
     ) {
         composable(AppDestinations.LOGIN_ROUTE) {
@@ -93,6 +106,7 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
                 onNavigateToLogin = {
                     navController.navigate(AppDestinations.LOGIN_ROUTE) {
                         popUpTo(AppDestinations.SIGNUP_ROUTE) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
                 navController = navController
@@ -102,8 +116,8 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
         composable(AppDestinations.USER_SETTINGS_ROUTE) {
             UserSettingScreen(navController = navController, authViewModel = authViewModel)
         }
-        composable(AppDestinations.USER_SHOW_QR_ROUTE) { // Gunakan rute baru
-            UserShowQrScreen(navController = navController, authViewModel = authViewModel) // Panggil Composable baru
+        composable(AppDestinations.USER_SHOW_QR_ROUTE) {
+            UserShowQrScreen(navController = navController, authViewModel = authViewModel)
         }
 
         composable(AppDestinations.USER_HOME_ROUTE) {
@@ -114,6 +128,7 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
         }
         composable(AppDestinations.ADMIN_HOME_ROUTE) {
             AdminHomeScreen(navController = navController, authViewModel = authViewModel)
+
         }
     }
 }
@@ -121,14 +136,19 @@ fun MainScreen(authViewModel: AuthViewModel = viewModel()) {
 @Composable
 private fun determineStartDestination(
     currentUser: FirebaseUser?,
-    userProfileData: User?
+    userProfileData: User?,
+    isLoading: Boolean
 ): String {
+    if (currentUser != null && (userProfileData == null || isLoading)) {
+        return AppDestinations.LOGIN_ROUTE // Atau rute loading jika ada
+    }
+
     return if (currentUser != null) {
         when (userProfileData?.role) {
             "administrator" -> AppDestinations.ADMIN_HOME_ROUTE
             "worker" -> AppDestinations.WORKER_HOME_ROUTE
             "user" -> AppDestinations.USER_HOME_ROUTE
-            else -> AppDestinations.LOGIN_ROUTE
+            else -> AppDestinations.LOGIN_ROUTE //
         }
     } else {
         AppDestinations.LOGIN_ROUTE
@@ -147,5 +167,5 @@ fun WorkerHomeScreen(navController: NavHostController, authViewModel: AuthViewMo
 
 @Composable
 fun AdminHomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    WorkerDashboardScreen(navController = navController, authViewModel = authViewModel)
+    AdminDashboardScreen(navController = navController, authViewModel = authViewModel)
 }
