@@ -43,14 +43,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.fastpark.viewmodel.AuthViewModel
 
 // Contoh data class untuk slot parkir (Anda mungkin punya ini di data/model)
 data class ParkingSlot(val id: String, val name: String, val status: String, val capacity: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ParkingManagementScreen(authViewModel: AuthViewModel) {
+fun ParkingManagementScreen() {
     val dummyParkingSlots = remember { mutableStateListOf(
         ParkingSlot("P001", "Area A - Lantai 1", "Tersedia", 50),
         ParkingSlot("P002", "Area B - Lantai 1", "Penuh", 40),

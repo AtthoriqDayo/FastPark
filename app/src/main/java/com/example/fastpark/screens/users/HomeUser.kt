@@ -29,15 +29,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.fastpark.navigation.AppDestinations
 import com.example.fastpark.screens.components.BalanceCard
 import com.example.fastpark.screens.components.HomeUserMenu
 import com.example.fastpark.screens.components.SearchUserBar
 import com.example.fastpark.screens.components.StatusHeader
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
-import androidx.compose.runtime.livedata.observeAsState // Untuk mengamati LiveData dari ViewModel
-import androidx.navigation.NavHostController
-import com.example.fastpark.navigation.AppDestinations // Asumsi Anda punya file ini untuk rute
 import com.example.fastpark.viewmodel.AuthViewModel
 
 

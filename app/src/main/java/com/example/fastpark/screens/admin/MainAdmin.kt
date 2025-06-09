@@ -1,4 +1,4 @@
-package com.example.fastpark.screens.workers
+package com.example.fastpark.screens.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,16 +13,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
-import com.example.fastpark.screens.components.BottomBar
-import com.example.fastpark.screens.components.MainPage
+import com.example.fastpark.screens.components.admin.AdminBottomBar
+import com.example.fastpark.screens.components.admin.AdminMainPage
 import com.example.fastpark.viewmodel.AuthViewModel
 
 @Composable
-fun WorkerDashboardScreen(
+fun AdminDashboardScreen(
     navController: NavHostController, // TAMBAHKAN PARAMETER
     authViewModel: AuthViewModel      // TAMBAHKAN PARAMETER
 ) {
-    var selectedPage by remember { mutableStateOf(MainPage.HOME) }
+    var selectedPage by remember { mutableStateOf(AdminMainPage.HOME_ADMIN) }
 
     Box(
         modifier = Modifier
@@ -32,16 +32,18 @@ fun WorkerDashboardScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.weight(1f)) {
                 when (selectedPage) {
-                    MainPage.HOME -> {
+                    AdminMainPage.HOME_ADMIN -> {
                         val userData by authViewModel.userData.observeAsState()
                         val userName = userData?.displayName ?: "User"
-                        HomeScreen(userName = userName)
+                        AdminScreen(userName = userName)
                     }
-                    MainPage.SCAN     -> ScanScreen()
-                    MainPage.SETTINGS -> SettingsScreen(navController = navController, authViewModel = authViewModel/* navController, authViewModel */)
+                    AdminMainPage.ACCOUNT_MANAGEMENT -> AccountManagementScreen(authViewModel)
+                    AdminMainPage.SETTINGS -> SettingsAdminScreen(navController, authViewModel)
                 }
             }
-            BottomBar(selectedPage = selectedPage) { selectedPage = it }
+            AdminBottomBar(selectedPage = selectedPage) { newSelectedPage ->
+                selectedPage = newSelectedPage
+            }
         }
     }
 }

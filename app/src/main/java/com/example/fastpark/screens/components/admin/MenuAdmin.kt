@@ -1,4 +1,4 @@
-package com.example.fastpark.screens.components
+package com.example.fastpark.screens.components.admin
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.HomeWork
 import androidx.compose.material.icons.filled.LocalParking
-import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -27,20 +27,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.screens.theme.BrightRed // Asumsi ini adalah warna merah terang Anda
 
 
-enum class HomeUserMenu(val label: String, val icon: ImageVector) {
-    HOMEUSER("Home", Icons.Default.Home),
-    PARKING("Parking", Icons.Default.LocalParking),
-    MAIL("Mail", Icons.Default.Mail),
-    HISTORY("History", Icons.Default.History)
+enum class AdminMenu(val label: String, val icon: ImageVector) {
+    HOME("Beranda", Icons.Default.HomeWork),
+    CUSTOMER_STATS("Menajemen Customer", Icons.Default.PeopleAlt),
+    FINANCIAL_MANAGEMENT("Manajemen Keuangan", Icons.Default.AttachMoney),
+    PARKING_MANAGEMENT("Manajemen Parkir", Icons.Default.LocalParking)
 }
 
 @Composable
-fun MenuUser(
-    selectedMenu: HomeUserMenu,
-    onMenuSelected: (HomeUserMenu) -> Unit
+fun MenuAdmin(
+    onMenuItemClick: (AdminMenu) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -58,13 +56,12 @@ fun MenuUser(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HomeUserMenu.entries.forEach { menu -> // Iterasi langsung pada enum entries
-                    HomeMenuItem(
-                        imageVector = menu.icon,   // Ambil ikon dari enum
-                        label = menu.label,       // Ambil label dari enum
-                        isSelected = selectedMenu == menu,
+                // Iterasi melalui semua nilai di enum AdminDashboardMenuItem
+                AdminMenu.entries.forEach { item ->
+                    AdminGridItem(
+                        menuItem = item,
                         modifier = Modifier.weight(1f),
-                        onClick = { onMenuSelected(menu) }
+                        onClick = { onMenuItemClick(item) }
                     )
                 }
             }
@@ -73,10 +70,8 @@ fun MenuUser(
 }
 
 @Composable
-private fun HomeMenuItem(
-    imageVector: ImageVector,
-    label: String,
-    isSelected: Boolean,
+private fun AdminGridItem(
+    menuItem: AdminMenu, // Menerima objek enum
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -84,21 +79,21 @@ private fun HomeMenuItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
-            .sizeIn(minWidth = 80.dp, minHeight = 80.dp)
+            .sizeIn(minWidth = 80.dp, minHeight = 80.dp) // Ukuran minimum untuk setiap item
             .clickable { onClick() }
             .padding(vertical = 8.dp)
     ) {
         Icon(
-            imageVector = imageVector,
-            contentDescription = label,
-            modifier = Modifier.size(36.dp),
-            tint = if (isSelected) BrightRed else Color.Black
+            imageVector = menuItem.icon, // Menggunakan icon dari enum
+            contentDescription = menuItem.label,
+            modifier = Modifier.size(36.dp), // Ukuran ikon
+            tint = Color.Black // Warna ikon, bisa disesuaikan
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = label,
+            text = menuItem.label, // Menggunakan label dari enum
             fontSize = 12.sp,
-            color = if (isSelected) BrightRed else Color.Black
+            color = Color.Black
         )
     }
 }

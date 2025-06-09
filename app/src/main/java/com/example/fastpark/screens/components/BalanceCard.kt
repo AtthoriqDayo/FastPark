@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CallMade
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CallMade
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -114,7 +114,7 @@ fun BalanceCard() {
                     shape = RoundedCornerShape(10.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.CallMade,
+                        imageVector = Icons.AutoMirrored.Filled.CallMade,
                         contentDescription = "Top Up",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp) // Perkecil ukuran ikon FAB
@@ -124,4 +124,3 @@ fun BalanceCard() {
         }
     }
 }
-

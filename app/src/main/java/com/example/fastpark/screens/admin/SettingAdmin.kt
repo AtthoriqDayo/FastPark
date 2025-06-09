@@ -1,4 +1,4 @@
-package com.example.fastpark.screens.workers
+package com.example.fastpark.screens.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,7 +35,7 @@ import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 
 @Composable
-fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()

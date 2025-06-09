@@ -1,60 +1,155 @@
 package com.example.fastpark.screens.admin
-// Import AdminBottomBar dan AdminMainPage dari lokasi baru mereka
+
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.fastpark.screens.admin.AdminNavGraph
-import com.example.fastpark.screens.components.AdminBottomBar
-import com.example.fastpark.screens.components.AdminMainPage
-import com.example.fastpark.viewmodel.AuthViewModel
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.fastpark.screens.components.SearchUserBar
+import com.example.fastpark.screens.components.WorkerHeader
+import com.example.fastpark.screens.components.admin.AdminMenu
+import com.example.fastpark.screens.components.admin.AdminPage
+import com.example.fastpark.screens.components.admin.MenuAdmin
+import com.example.fastpark.screens.theme.BrightRed
+import com.example.fastpark.screens.theme.DeepRed
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen(
-    navController: NavHostController,
-    authViewModel: AuthViewModel
+fun AdminScreen(
+    userName: String = "User",
 ) {
-    val adminNavController = rememberNavController() // NavController internal untuk navigasi BottomBar
-    var selectedAdminPage by remember { mutableStateOf(AdminMainPage.ACCOUNT_MANAGEMENT) } // State untuk BottomBar
+    var selectedMenu by remember { mutableStateOf(AdminMenu.HOME) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    var isSearching by remember { mutableStateOf(false) }
 
     Scaffold(
-        bottomBar = {
-            AdminBottomBar( // Gunakan AdminBottomBar yang baru
-                selectedAdminPage = selectedAdminPage,
-                onPageSelected = { newAdminPage ->
-                    selectedAdminPage = newAdminPage // Update state halaman yang dipilih
-                    adminNavController.navigate(newAdminPage.route) { // Navigasi NavController internal
-                        // Pastikan hanya satu instance halaman di back stack
-                        popUpTo(adminNavController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+        floatingActionButton = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                FloatingActionButton(
+                    onClick = { /* TODO: Aksi ketika FAB diklik */
+                        println("Floating Action Button clicked!")
+                    },
+                    containerColor = BrightRed,
+                    shape = MaterialTheme.shapes.extraLarge
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Quick Action Button",
+                        tint = Color.White
+                    )
                 }
-            )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Aksi Cepat",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 12.sp
+                )
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.White)
                 .padding(paddingValues)
-                .background(Color.White) // Background untuk konten utama
         ) {
-            AdminNavGraph(navController = adminNavController, authViewModel = authViewModel)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(DeepRed, BrightRed)
+                        ),
+                        shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+                    )
+                    .padding(top = 50.dp, bottom = 24.dp)
+            ) {
+                WorkerHeader(userName)
+
+                Spacer(Modifier.height(12.dp))
+
+                SearchUserBar(
+                    query = searchQuery,
+                    onQueryChange = { newQuery ->
+                        searchQuery = newQuery
+                        isSearching = newQuery.isNotEmpty()
+                        // TODO: Anda bisa memicu pencarian data di sini
+                        println("Searching for: $newQuery")
+                    },
+                    onSearchClose = {
+                        isSearching = false
+                        searchQuery = ""
+                        println("Search bar closed.")
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            if (isSearching) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                    // TODO: Di sini Anda akan menampilkan daftar hasil pencarian, mungkin menggunakan LazyColumn
+                    // Contoh: LazyColumn { items(filteredSearchResults) { item -> Text(item.name) } }
+                }
+            } else {
+
+
+                Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
+
+                Spacer(Modifier.height(24.dp))
+                MenuAdmin { selectedMenu = it  }
+
+                Spacer(Modifier.height(24.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    when (selectedMenu) {
+                        AdminMenu.HOME -> AdminPage()
+                        AdminMenu.CUSTOMER_STATS -> CustomerStatisticsScreen()
+                        AdminMenu.FINANCIAL_MANAGEMENT -> FinancialStatisticsScreen()
+                        AdminMenu.PARKING_MANAGEMENT -> ParkingManagementScreen()
+                    }
+                }
+            }
         }
     }
 }

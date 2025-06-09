@@ -1,6 +1,5 @@
 package com.example.fastpark.screens.components
 
-// Import DarkGray jika ingin menggunakan warna abu-abu gelap untuk ikon tidak aktif
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,20 +29,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.fastpark.screens.theme.BrightRed
+import com.example.fastpark.screens.theme.BrightRed // Pastikan BrightRed didefinisikan di sini atau import dari tempat lain
 
-enum class MainPage {
-    HOME, SCAN, SETTINGS
+// --- DEFINISI ENUM MAINPAGE ---
+enum class MainPage(val label: String, val icon: ImageVector) {
+    HOME("Home", Icons.Default.Home),
+    SCAN("Scan", Icons.Default.QrCodeScanner),
+    SETTINGS("Setting", Icons.Default.Settings)
 }
 
+// --- DEFINISI COMPOSABLE BOTTOMBAR ---
 @Composable
 fun BottomBar(
-    selectedPage: MainPage,
-    onMenuClick: (MainPage) -> Unit
+    selectedPage: MainPage, // Parameter untuk halaman yang sedang dipilih
+    onPageSelected: (MainPage) -> Unit, // Callback saat halaman baru dipilih
 ) {
     Card(
         modifier = Modifier
@@ -52,54 +54,49 @@ fun BottomBar(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ){
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp + 16.dp),
+                .height(70.dp + 16.dp), // Total tinggi termasuk offset ikon
             contentAlignment = Alignment.BottomCenter
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(70.dp),
+                    .height(70.dp), // Tinggi Row konten BottomBar
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                MainMenuItem(
-                    imageVector = Icons.Default.Home,
-                    label = "Home",
-                    isSelected = selectedPage == MainPage.HOME
-                ) { onMenuClick(MainPage.HOME) }
-
-                MainMenuItem(
-                    imageVector = Icons.Default.QrCodeScanner,
-                    label = "Scan",
-                    isSelected = selectedPage == MainPage.SCAN
-                ) { onMenuClick(MainPage.SCAN) }
-
-                MainMenuItem(
-                    imageVector = Icons.Default.Settings,
-                    label = "Settings",
-                    isSelected = selectedPage == MainPage.SETTINGS
-                ) { onMenuClick(MainPage.SETTINGS) }
+                // Iterasi melalui semua entri dalam enum MainPage
+                MainPage.entries.forEach { page ->
+                    // Memanggil MainMenuItem untuk setiap halaman
+                    MainMenuItem(
+                        imageVector = page.icon,   // Mengambil ikon dari enum
+                        label = page.label,       // Mengambil label dari enum
+                        isSelected = selectedPage == page, // Menentukan apakah item ini yang sedang dipilih
+                        onClick = { onPageSelected(page) } // Meneruskan callback saat item diklik
+                    )
+                }
             }
         }
     }
 }
 
-
+// --- DEFINISI COMPOSABLE MAINMENUITEM ---
 @Composable
 private fun MainMenuItem(
-    imageVector: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
+    imageVector: ImageVector, // Ikon untuk item menu
+    label: String,            // Teks label untuk item menu
+    isSelected: Boolean,      // Menunjukkan apakah item ini sedang dipilih
+    onClick: () -> Unit       // Callback saat item diklik
 ) {
+    // Animasi ukuran ikon saat dipilih/tidak dipilih
     val size by animateDpAsState(
         targetValue = if (isSelected) 45.dp else 38.dp,
         label = "sizeAnim"
     )
+    // Animasi offset vertikal ikon saat dipilih/tidak dipilih
     val offsetY by animateDpAsState(
         targetValue = if (isSelected) (-16).dp else 0.dp,
         label = "offsetAnim"
@@ -108,45 +105,33 @@ private fun MainMenuItem(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .offset(y = offsetY)
-            .zIndex(if (isSelected) 1f else 0f)
-            .clickable { onClick() }
+            .offset(y = offsetY) // Mengatur offset vertikal
+            .zIndex(if (isSelected) 1f else 0f) // Menempatkan ikon terpilih di atas
+            .clickable { onClick() } // Membuat item bisa diklik
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(size) // Ukuran Box dianimasikan
-                .clip(RoundedCornerShape(100))
-                .background(if (isSelected) Color.Transparent else Color.Transparent)
-                .border(
-                    width = if (isSelected) 3.dp else 0.dp,
-                    color = if (isSelected) Color.Transparent else Color.Transparent,
+                .size(size) // Mengatur ukuran Box
+                .clip(RoundedCornerShape(100)) // Membuat bentuk lingkaran
+                .background(Color.Transparent) // Latar belakang transparan
+                .border( // Border, saat ini tidak terlihat karena width 0.dp
+                    width = 0.dp,
+                    color = Color.Transparent,
                     shape = RoundedCornerShape(100)
                 )
         ) {
             Icon(
                 imageVector = imageVector,
                 contentDescription = label,
-                // --- PERUBAHAN DI SINI: Warna ikon berdasarkan isSelected ---
-                tint = if (isSelected) BrightRed else Color.Black, // Putih saat aktif, DarkGray saat tidak
-                modifier = Modifier.size(size) // --- PERUBAHAN DI SINI: Ukuran ikon ikut animasi Box ---
+                tint = if (isSelected) BrightRed else Color.Black, // Warna ikon berubah saat dipilih
+                modifier = Modifier.size(size) // Ukuran ikon sama dengan Box
             )
         }
-        Text(text = label, fontSize = 12.sp, color = Color.Black) // Warna teks tetap hitam (atau bisa disesuaikan juga)
-    }
-}
-
-@Composable
-@Preview(showBackground = true)
-fun BottomBarPreview() {
-    Box(
-        modifier = Modifier
-            .background(Color.Black)
-            .padding(top = 32.dp)
-    ) {
-        BottomBar(
-            selectedPage = MainPage.HOME,
-            onMenuClick = {}
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = if (isSelected) BrightRed else Color.Black // Warna teks berubah saat dipilih
         )
     }
 }
