@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("com.google.gms.google-services") // Plugin Google Services
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
 }
 
 android {
@@ -99,6 +100,12 @@ dependencies {
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
     implementation (libs.androidx.lifecycle.livedata.ktx)
     implementation (libs.androidx.lifecycle.runtime.ktx.v280)
+    implementation(libs.okhttp)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio) // Engine untuk Ktor, cocok untuk coroutines
+    implementation(libs.ktor.client.content.negotiation) // Untuk parsing JSON
+    implementation(libs.ktor.serialization.kotlinx.json) // Plugin JSON
+    implementation(libs.ktor.client.logging)
 
 
 

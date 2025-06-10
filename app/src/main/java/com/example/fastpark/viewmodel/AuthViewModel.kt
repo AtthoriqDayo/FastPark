@@ -1,3 +1,6 @@
+// File: viewmodel/AuthViewModel.kt
+@file:Suppress("DEPRECATION")
+
 package com.example.fastpark.viewmodel
 
 import android.app.Application
@@ -17,14 +20,27 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
+    // LiveData yang sudah ada
     private val _currentUser = MutableLiveData<FirebaseUser?>()
     val currentUser: LiveData<FirebaseUser?> = _currentUser
 
@@ -35,12 +51,19 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val error: LiveData<String?> = _error
 
     private val _allUsers = MutableLiveData<List<User>>()
-    val allUsers: LiveData<List<User>> = _allUsers //
+    val allUsers: LiveData<List<User>> = _allUsers
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
     val googleSignInClient: GoogleSignInClient
+
+    // --- PENAMBAHAN: State untuk QR Code Dinamis ---
+    private val _dynamicQrToken = MutableStateFlow<String?>(null)
+    val dynamicQrToken: StateFlow<String?> = _dynamicQrToken.asStateFlow()
+    private var tokenRefreshJob: Job? = null
+    private val TOKEN_REFRESH_INTERVAL_SECONDS = 55L
+    // --- AKHIR PENAMBAHAN ---
 
     // Firestore listener untuk allUsers
     private var allUsersListener: ListenerRegistration? = null
@@ -48,14 +71,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         _currentUser.value = auth.currentUser
         if (_currentUser.value != null) {
-            viewModelScope.launch { // Launch coroutine untuk fetchUserData di init
+            viewModelScope.launch {
                 fetchUserData(_currentUser.value!!.uid)
             }
-            // Mulai mendengarkan perubahan semua pengguna jika user sudah login
-            startListeningForAllUsers()
+
         }
 
-        // Konfigurasi Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com")
             .requestEmail()
@@ -63,18 +84,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         googleSignInClient = GoogleSignIn.getClient(application, gso)
     }
 
-    // Dipanggil saat ViewModel di-clear
     override fun onCleared() {
         super.onCleared()
         stopListeningForAllUsers()
+        stopDynamicQrTokenUpdates() // PENAMBAHAN: Pastikan job dihentikan saat ViewModel hancur
     }
 
     private fun startListeningForAllUsers() {
-        allUsersListener?.remove() // Hapus listener sebelumnya jika ada
+        allUsersListener?.remove()
         _isLoading.value = true
         allUsersListener = db.collection("users")
             .addSnapshotListener { snapshots, e ->
-                _isLoading.postValue(false) // Gunakan postValue karena ini dari callback background
+                _isLoading.postValue(false)
                 if (e != null) {
                     _error.postValue("Gagal memuat daftar pengguna: ${e.message}")
                     Log.w("AuthViewModel", "Listen failed.", e)
@@ -97,12 +118,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _error.value = null
     }
 
-    // --- Pendaftaran dengan Email & Password (untuk pengguna biasa) ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun signUpWithEmailPassword(email: String, pass: String, displayName: String) {
         _isLoading.value = true
-        _error.value = null // Bersihkan error sebelumnya
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        _error.value = null
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = auth.createUserWithEmailAndPassword(email, pass).await()
                 val firebaseUser = result.user
@@ -111,9 +130,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         uid = firebaseUser.uid,
                         email = firebaseUser.email,
                         displayName = displayName,
-                        role = "user" // Default role saat pendaftaran baru
+                        role = "user"
                     )
-                    saveUserToFirestore(newUser) // Ini masih suspend, tapi dipanggil dari coroutine
+                    saveUserToFirestore(newUser)
                     _currentUser.postValue(firebaseUser)
                     _userData.postValue(newUser)
                 } else {
@@ -121,19 +140,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 _error.postValue(e.message ?: "Terjadi kesalahan saat pendaftaran.")
-                Log.e("AuthViewModel", "SignUp Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
         }
     }
 
-    // --- Pendaftaran Akun Baru oleh ADMIN ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun createUserWithEmailAndPassword(email: String, pass: String, displayName: String?, role: String) {
         _isLoading.value = true
-        _error.value = null // Bersihkan error sebelumnya
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        _error.value = null
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = auth.createUserWithEmailAndPassword(email, pass).await()
                 val firebaseUser = result.user
@@ -145,50 +161,42 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         displayName = displayName,
                         role = role
                     )
-                    saveUserToFirestore(newUser) // Ini masih suspend, tapi dipanggil dari coroutine
-                    // Mulai ulang listening for all users untuk merefresh daftar di UI Admin
-                    startListeningForAllUsers()
+                    saveUserToFirestore(newUser)
                 } else {
                     _error.postValue("Gagal membuat pengguna baru.")
                 }
             } catch (e: Exception) {
                 _error.postValue(e.message ?: "Terjadi kesalahan saat membuat akun baru.")
-                Log.e("AuthViewModel", "Admin Create User Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
         }
     }
 
-    // --- Login dengan Email & Password ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun signInWithEmailPassword(email: String, pass: String) {
         _isLoading.value = true
         _error.value = null
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = auth.signInWithEmailAndPassword(email, pass).await()
                 val firebaseUser = result.user
                 _currentUser.postValue(firebaseUser)
                 if (firebaseUser != null) {
-                    fetchUserData(firebaseUser.uid) // Ini masih suspend, tapi dipanggil dari coroutine
+                    fetchUserData(firebaseUser.uid)
                     startListeningForAllUsers()
                 }
             } catch (e: Exception) {
                 _error.postValue(e.message ?: "Terjadi kesalahan saat login.")
-                Log.e("AuthViewModel", "SignIn Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
         }
     }
 
-    // --- Login dengan Google ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun signInWithGoogleCredential(credential: AuthCredential) {
         _isLoading.value = true
         _error.value = null
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = auth.signInWithCredential(credential).await()
                 val firebaseUser = result.user
@@ -200,9 +208,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                             uid = firebaseUser.uid,
                             email = firebaseUser.email,
                             displayName = firebaseUser.displayName,
-                            role = "user" // Default role
+                            role = "user"
                         )
-                        saveUserToFirestore(newUser) // Ini masih suspend
+                        saveUserToFirestore(newUser)
                         _userData.postValue(newUser)
                     } else {
                         _userData.postValue(userDoc.toObject(User::class.java))
@@ -211,15 +219,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 _error.postValue(e.message ?: "Terjadi kesalahan saat login dengan Google.")
-                Log.e("AuthViewModel", "Google SignIn Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
         }
     }
 
-    // --- Menyimpan atau Memperbarui Data Pengguna di Firestore ---
-    // Ini adalah fungsi internal, biarkan suspend
     private suspend fun saveUserToFirestore(user: User) {
         try {
             db.collection("users").document(user.uid)
@@ -227,11 +232,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 .await()
         } catch (e: Exception) {
             _error.postValue("Gagal menyimpan data pengguna ke Firestore: ${e.message}")
-            Log.e("AuthViewModel", "Firestore Save Error: ${e.message}", e)
         }
     }
 
-    // --- Mengambil Data Pengguna dari Firestore ---
     private suspend fun fetchUserData(uid: String) {
         _isLoading.postValue(true)
         _error.postValue(null)
@@ -239,16 +242,26 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             val document = db.collection("users").document(uid).get().await()
             if (document.exists()) {
                 _userData.postValue(document.toObject(User::class.java))
+
+                val user = document.toObject(User::class.java)
+                _userData.postValue(user)
+                // --- PENAMBAHAN LOGIKA KONDISIONAL DI SINI ---
+                if (user?.role == "administrator") {
+                    startListeningForAllUsers() // Hanya panggil jika user adalah admin
+                } else {
+                    stopListeningForAllUsers() // Pastikan listener berhenti jika user bukan admin
+                }
+                // --- AKHIR PENAMBAHAN ---
+
             } else {
                 _error.postValue("Data pengguna tidak ditemukan di Firestore.")
-                // Jika user ada di Auth tapi tidak di Firestore
                 val firebaseUser = auth.currentUser
                 if (firebaseUser != null && firebaseUser.uid == uid) {
                     val newUser = User(
                         uid = firebaseUser.uid,
                         email = firebaseUser.email,
                         displayName = firebaseUser.displayName,
-                        role = "user" // Default role
+                        role = "user"
                     )
                     saveUserToFirestore(newUser)
                     _userData.postValue(newUser)
@@ -257,22 +270,19 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         } catch (e: Exception) {
             _error.postValue("Gagal mengambil data pengguna: ${e.message}")
-            Log.e("AuthViewModel", "Firestore Fetch Error: ${e.message}", e)
         } finally {
             _isLoading.postValue(false)
         }
     }
 
-    // --- Mengubah Profil Pengguna (oleh Admin) ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun updateUserProfile(uid: String, newDisplayName: String?, newRole: String) {
         _isLoading.value = true
         _error.value = null
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        viewModelScope.launch(Dispatchers.IO) {
             if (_userData.value?.role != "administrator") {
                 _error.postValue("Anda tidak memiliki hak untuk mengubah profil pengguna lain.")
                 _isLoading.postValue(false)
-                return@launch // Keluar dari coroutine
+                return@launch
             }
 
             try {
@@ -281,48 +291,31 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 updates["role"] = newRole
 
                 db.collection("users").document(uid).update(updates).await()
-
-                // Jika user yang diupdate adalah user yang sedang login, refresh data mereka
                 if (uid == _currentUser.value?.uid) {
-                    fetchUserData(uid) // Ini masih suspend
+                    fetchUserData(uid)
                 }
-                // Mulai ulang listening for all users untuk merefresh daftar di UI Admin
-                startListeningForAllUsers()
             } catch (e: Exception) {
                 _error.postValue("Gagal mengubah profil pengguna: ${e.message}")
-                Log.e("AuthViewModel", "Update Profile Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
         }
     }
 
-    // --- Menghapus Pengguna (oleh Admin) ---
-    // Ubah dari suspend fun menjadi fun biasa, dan bungkus isinya dengan viewModelScope.launch
     fun deleteUser(uid: String) {
         _isLoading.value = true
         _error.value = null
-        viewModelScope.launch(Dispatchers.IO) { // Jalankan di Dispatchers.IO
+        viewModelScope.launch(Dispatchers.IO) {
             if (_userData.value?.role != "administrator") {
                 _error.postValue("Anda tidak memiliki hak untuk menghapus pengguna.")
                 _isLoading.postValue(false)
-                return@launch // Keluar dari coroutine
+                return@launch
             }
 
             try {
-                // Hapus dokumen user dari Firestore
                 db.collection("users").document(uid).delete().await()
-
-                // Mulai ulang listening for all users untuk merefresh daftar di UI Admin
-                startListeningForAllUsers()
-
-                // --- BAGIAN INI MEMBUTUHKAN CLOUD FUNCTION UNTUK MENGHAPUS DARI FIREBASE AUTH ---
-                // ... (tetap dengan komentar Anda)
-                // ----------------------------------------------------------------------------------
-
             } catch (e: Exception) {
                 _error.postValue("Gagal menghapus pengguna: ${e.message}")
-                Log.e("AuthViewModel", "Delete User Error: ${e.message}", e)
             } finally {
                 _isLoading.postValue(false)
             }
@@ -330,7 +323,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    // --- Logout ---
     fun signOut() {
         auth.signOut()
         googleSignInClient.signOut()
@@ -338,5 +330,100 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _userData.value = null
         _error.value = null
         stopListeningForAllUsers()
+        stopDynamicQrTokenUpdates() // PENAMBAHAN: Hentikan refresh token saat logout
     }
+
+    fun startDynamicQrTokenUpdates() {
+        if (tokenRefreshJob?.isActive == true) {
+            Log.d("AuthViewModel", "Pembaruan token QR dinamis sudah berjalan.")
+            return
+        }
+        if (auth.currentUser == null) {
+            Log.w("AuthViewModel", "Tidak bisa memulai pembaruan token: Pengguna belum login.")
+            _dynamicQrToken.value = null
+            _error.postValue("Anda harus login untuk melihat QR Code.")
+            return
+        }
+
+        tokenRefreshJob = viewModelScope.launch {
+            Log.d("AuthViewModel", "Memulai job pembaruan token QR Dinamis untuk user: ${auth.currentUser?.uid}")
+            while (isActive) {
+                fetchNewTokenFromServer() // Kita tidak perlu menangani nilai return di sini karena fungsi sudah update state
+                delay(TOKEN_REFRESH_INTERVAL_SECONDS * 1000L)
+            }
+        }
+    }
+
+    fun stopDynamicQrTokenUpdates() {
+        tokenRefreshJob?.cancel()
+        tokenRefreshJob = null
+        _dynamicQrToken.value = null
+        Log.d("AuthViewModel", "Pembaruan Token QR Dinamis dihentikan.")
+    }
+
+    private suspend fun fetchNewTokenFromServer() {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser == null) {
+            _error.postValue("Sesi tidak valid. Silakan coba login kembali.")
+            Log.e("AuthViewModel", "fetchNewTokenFromServer dipanggil tapi firebaseUser null.")
+            return
+        }
+
+        var idToken: String? = null
+        try {
+            idToken = firebaseUser.getIdToken(true).await().token
+            // === LOGGING TAMBAHAN UNTUK DEBUGGING ===
+            if (idToken.isNullOrEmpty()) {
+                Log.e("AuthViewModel", "getIdToken() berhasil tapi mengembalikan token null atau kosong.")
+                _error.postValue("Gagal mendapatkan token otentikasi.")
+                return
+            }
+            Log.d("AuthViewModel", "Berhasil mendapatkan ID Token. Panjang: ${idToken.length}")
+        } catch (e: Exception) {
+            Log.e("AuthViewModel", "Pengecualian saat mengambil ID Token: ${e.message}", e)
+            _error.postValue("Gagal memvalidasi sesi Anda.")
+            return
+        }
+
+        val functionUrl = "https://generatedynamicqrtoken-tmasj2diia-uc.a.run.app"
+
+        withContext(Dispatchers.IO) {
+            val client = OkHttpClient()
+            try {
+                val emptyRequestBody = "".toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+                val request = Request.Builder()
+                    .url(functionUrl)
+                    .header("Authorization", "Bearer $idToken") // Mengirim ID Token
+                    .post(emptyRequestBody)
+                    .build()
+
+                Log.d("AuthViewModel", "Memanggil Cloud Function dengan ID Token...")
+                val response = client.newCall(request).execute()
+                val responseBodyString = response.body?.string()
+
+                if (response.isSuccessful && responseBodyString != null) {
+                    val jsonResponse = JSONObject(responseBodyString)
+                    val token = jsonResponse.optString("token")
+                    if (token.isNotEmpty()) {
+                        _dynamicQrToken.value = token
+                        _error.postValue(null) // Bersihkan error jika sukses
+                    } else {
+                        _error.postValue("Gagal memproses data QR dari server (token tidak valid).")
+                    }
+                } else {
+                    val serverErrorMessage = try {
+                        JSONObject(responseBodyString ?: "{}").optString("message", "Error dari server (Kode: ${response.code}).")
+                    } catch (e: Exception) { "Error dari server (Kode: ${response.code})." }
+                    _error.postValue(serverErrorMessage)
+                }
+            } catch (e: Exception) {
+                _error.postValue("Terjadi kesalahan jaringan saat memuat QR Code.")
+            }
+        }
+    }
+
+    // --- [Sertakan fungsi-fungsi admin Anda yang lain di sini jika perlu] ---
+    // (signInWithEmailPassword, createUserWithEmailAndPassword, updateUserProfile, deleteUser, dll.)
+    // Pastikan semua fungsi tersebut menggunakan pola viewModelScope.launch(Dispatchers.IO) dan .postValue() seperti di file Anda.
 }

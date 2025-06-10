@@ -1,12 +1,18 @@
 // File: UserShowQrScreen.kt
-package com.example.fastpark.screens.users // Atau package yang sesuai
+package com.example.fastpark.screens.users
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
+import android.graphics.Paint
+import android.graphics.RectF
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -15,18 +21,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavHostController
-import com.example.fastpark.screens.theme.DeepRed // atau warna tema Anda
+import com.example.fastpark.R
+import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
+import androidx.core.graphics.scale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,23 +48,37 @@ fun UserShowQrScreen(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
+    val dynamicToken by authViewModel.dynamicQrToken.collectAsState()
+    val errorMessage by authViewModel.error.observeAsState()
     val userData by authViewModel.userData.observeAsState()
-    val userId = userData?.uid // Data yang akan di-encode ke QR
 
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
+    val context = LocalContext.current
+    val logoResId = R.drawable.logo // Ganti jika nama file logo Anda berbeda
 
-    LaunchedEffect(userId) {
-        if (!userId.isNullOrEmpty()) {
-            coroutineScope.launch {
-                withContext(Dispatchers.IO) { // Operasi pembuatan bitmap di background thread
-                    val sizeInPixels = with(density) { 256.dp.toPx() }.toInt() // Ukuran QR code dalam pixel
-                    qrBitmap = generateQrCodeBitmap(userId, sizeInPixels, sizeInPixels)
-                }
+    DisposableEffect(authViewModel) {
+        authViewModel.startDynamicQrTokenUpdates()
+        onDispose {
+            authViewModel.stopDynamicQrTokenUpdates()
+        }
+    }
+
+    LaunchedEffect(dynamicToken, density, context, logoResId) {
+        if (!dynamicToken.isNullOrEmpty()) {
+            val generatedBitmap = withContext(Dispatchers.IO) {
+                val sizeInPixels = with(density) { 256.dp.toPx() }.toInt()
+                generateQrCodeBitmapWithLogo(
+                    content = dynamicToken!!,
+                    width = sizeInPixels,
+                    height = sizeInPixels,
+                    context = context,
+                    logoResId = logoResId
+                )
             }
+            qrBitmap = generatedBitmap
         } else {
-            qrBitmap = null // Hapus bitmap jika userId tidak ada
+            qrBitmap = null
         }
     }
 
@@ -60,14 +88,11 @@ fun UserShowQrScreen(
                 title = { Text("QR Code Saya") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = DeepRed, // Sesuaikan warna
+                    containerColor = DeepRed,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -85,56 +110,100 @@ fun UserShowQrScreen(
             if (qrBitmap != null) {
                 Image(
                     bitmap = qrBitmap!!.asImageBitmap(),
-                    contentDescription = "QR Code Pengguna",
-                    modifier = Modifier
-                        .size(256.dp) // Ukuran tampilan QR code
-                        .padding(16.dp),
+                    contentDescription = "QR Code Pengguna Dinamis dengan Logo",
+                    modifier = Modifier.size(256.dp).padding(16.dp),
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Tunjukkan kode ini untuk keperluan parkir.",
+                    text = "Kode ini akan diperbarui secara otomatis untuk keamanan Anda.",
                     fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
                     color = Color.Gray
                 )
-            } else if (userId.isNullOrEmpty() && userData != null) {
-                // User data sudah termuat tapi ID kosong (seharusnya tidak terjadi untuk user yang login)
-                Text("Tidak dapat membuat QR Code: ID Pengguna tidak valid.")
-            }
-            else {
-                // Menunggu data user atau userId
-                CircularProgressIndicator()
+            } else if (!errorMessage.isNullOrEmpty()) {
+                Icon(Icons.Default.Warning, "Error Icon", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Memuat QR Code...")
+                Text("Gagal Memuat QR Code", fontSize = 18.sp, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(errorMessage!!, fontSize = 14.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f))
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = {
+                    authViewModel.clearError()
+                    authViewModel.startDynamicQrTokenUpdates()
+                }) { Text("Coba Lagi") }
+            } else {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Menghasilkan QR Code Dinamis...")
             }
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "ID Pengguna: ${userId ?: "Tidak tersedia"}",
-                fontSize = 12.sp,
-                color = Color.Gray.copy(alpha = 0.7f)
-            )
+            if (userData != null) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text("ID Pengguna: ${userData?.uid ?: "Tidak tersedia"}", fontSize = 12.sp, color = Color.Gray.copy(alpha = 0.7f))
+            }
         }
     }
 }
 
-private fun generateQrCodeBitmap(content: String, width: Int, height: Int): Bitmap? {
+private fun generateQrCodeBitmapWithLogo(
+    content: String,
+    width: Int,
+    height: Int,
+    context: Context,
+    logoResId: Int,
+    logoMarginInPx: Int = 10
+): Bitmap? {
     val qrCodeWriter = QRCodeWriter()
     try {
         val hints = mutableMapOf<EncodeHintType, Any>()
         hints[EncodeHintType.CHARACTER_SET] = "UTF-8"
-        // Anda bisa menambahkan margin di sini jika perlu
-        // hints[EncodeHintType.MARGIN] = 2
+        hints[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.Q
+        hints[EncodeHintType.MARGIN] = 1
 
         val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        val qrBitmap = createBitmap(width, height)
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+                qrBitmap[x, y] = if (bitMatrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE
             }
         }
-        return bitmap
+
+        ContextCompat.getDrawable(context, logoResId)?.let { drawable ->
+            val originalLogoBitmap = drawable.toBitmap()
+            val originalLogoWidth = originalLogoBitmap.width
+            val originalLogoHeight = originalLogoBitmap.height
+            if (originalLogoWidth == 0 || originalLogoHeight == 0) return qrBitmap
+
+            val targetLogoWidth = width / 6
+            val targetLogoHeight = (originalLogoHeight.toFloat() / originalLogoWidth.toFloat() * targetLogoWidth).toInt()
+            if (targetLogoWidth <= 0 || targetLogoHeight <= 0) return qrBitmap
+
+            val scaledLogoBitmap = originalLogoBitmap.scale(targetLogoWidth, targetLogoHeight)
+            val canvas = Canvas(qrBitmap)
+            val xLogo = (width - targetLogoWidth) / 2f
+            val yLogo = (height - targetLogoHeight) / 2f
+
+            if (logoMarginInPx > 0) {
+                val paintBackground = Paint().apply {
+                    color = AndroidColor.WHITE
+                    style = Paint.Style.FILL
+                    isAntiAlias = true
+                }
+                val bgRect = RectF(
+                    xLogo - logoMarginInPx,
+                    yLogo - logoMarginInPx,
+                    xLogo + targetLogoWidth + logoMarginInPx,
+                    yLogo + targetLogoHeight + logoMarginInPx
+                )
+                val cornerRadius = logoMarginInPx * 0.5f
+                canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, paintBackground)
+            }
+
+            canvas.drawBitmap(scaledLogoBitmap, xLogo, yLogo, null)
+        }
+        return qrBitmap
     } catch (e: Exception) {
-        e.printStackTrace()
+        Log.e("generateQrCodeWithLogo", "Error generating QR code with logo: ${e.message}", e)
         return null
     }
 }

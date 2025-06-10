@@ -24,7 +24,6 @@ import com.example.fastpark.viewmodel.AuthViewModel
 
 
 
-@Composable fun ParkingUserScreen() = CenterTextUser("Isi Parking User Screen")
 @Composable fun MailUserScreen()    = CenterTextUser("Isi Mail User Screen")
 @Composable fun HistoryUserScreen() = CenterTextUser("Isi History User Screen")
 
