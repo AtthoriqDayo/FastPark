@@ -10,13 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.fastpark.navigation.AppDestinations
 import com.example.fastpark.screens.components.BalanceCard
-import com.example.fastpark.screens.components.HomeUserMenu
 import com.example.fastpark.screens.components.SearchUserBar
 import com.example.fastpark.screens.components.StatusHeader
 import com.example.fastpark.screens.theme.BrightRed
@@ -40,127 +33,93 @@ import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 
 
-// Definisi HomeUserMenu (asumsi ini sudah ada dan mencakup CHART jika diperlukan)
-// Contoh:
-// enum class HomeUserMenu { PARKING, MAIL, HISTORY, CHART }
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeUserScreen(
     userName: String = "User",
-    navController: NavHostController, // Tambahkan NavController
-    authViewModel: AuthViewModel      // Tambahkan AuthViewModel
-) {
-    var selectedMenu by remember { mutableStateOf(HomeUserMenu.HOMEUSER) }
-    var searchQuery by remember { mutableStateOf("") }
+    navController: NavHostController,
+    authViewModel: AuthViewModel
 
+) {
+    var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                FloatingActionButton(
-                    onClick = { /* TODO: Aksi ketika FAB diklik */
-                        println("Floating Action Button clicked!")
-                    },
-                    containerColor = BrightRed,
-                    shape = MaterialTheme.shapes.extraLarge
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Quick Action Button",
-                        tint = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Aksi Cepat",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 12.sp
-                )
-            }
-        }
-    ) { paddingValues ->
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(paddingValues)
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(DeepRed, BrightRed)
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+                )
+                .padding(top = 50.dp, bottom = 24.dp)
         ) {
+            StatusHeader(
+                userName = userName,
+                onSettingsClick = {
+                    navController.navigate(AppDestinations.USER_SETTINGS_ROUTE)
+                },
+                onShowQrClick = {
+                    navController.navigate(AppDestinations.USER_SHOW_QR_ROUTE)
+                }
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            SearchUserBar(
+                query = searchQuery,
+                onQueryChange = { newQuery ->
+                    searchQuery = newQuery
+                    isSearching = newQuery.isNotEmpty()
+                    // TODO: Anda bisa memicu pencarian data di sini
+                    println("Searching for: $newQuery")
+                },
+                onSearchClose = {
+                    isSearching = false
+                    searchQuery = ""
+                    println("Search bar closed.")
+                },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+
+        if (isSearching) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(DeepRed, BrightRed)
-                        ),
-                        shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
-                    )
-                    .padding(top = 50.dp, bottom = 24.dp)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                StatusHeader(
-                    userName = userName,
-                    onSettingsClick = {
-                        navController.navigate(AppDestinations.USER_SETTINGS_ROUTE) // Navigasi ke User Settings
-                    },
-                    onShowQrClick = {
-                        navController.navigate(AppDestinations.USER_SHOW_QR_ROUTE) // Navigasi ke User Scan QR
-                    }
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                SearchUserBar(
-                    query = searchQuery,
-                    onQueryChange = { newQuery ->
-                        searchQuery = newQuery
-                        isSearching = newQuery.isNotEmpty()
-                        // TODO: Anda bisa memicu pencarian data di sini
-                        println("Searching for: $newQuery")
-                    },
-                    onSearchClose = {
-                        isSearching = false
-                        searchQuery = ""
-                        println("Search bar closed.")
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                Text(
+                    text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
+                    fontSize = 16.sp,
+                    color = Color.Gray
                 )
             }
-
-            if (isSearching) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                    // TODO: Di sini Anda akan menampilkan daftar hasil pencarian, mungkin menggunakan LazyColumn
-                    // Contoh: LazyColumn { items(filteredSearchResults) { item -> Text(item.name) } }
-                }
-            } else {
+        } else {
 
 
-                Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
+            Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
 
-                BalanceCard() // BalanceCard Anda
+            BalanceCard() // BalanceCard Anda
 
-                Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-                Spacer(Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-            }
+            Spacer(Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
         }
     }
 }

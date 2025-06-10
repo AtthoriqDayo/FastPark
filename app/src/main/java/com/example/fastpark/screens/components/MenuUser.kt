@@ -14,8 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalParking
-import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Moped
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -27,13 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.screens.theme.BrightRed // Asumsi ini adalah warna merah terang Anda
+import com.example.fastpark.screens.theme.BrightRed
 
 
 enum class HomeUserMenu(val label: String, val icon: ImageVector) {
     HOMEUSER("Home", Icons.Default.Home),
-    PARKING("Parking", Icons.Default.LocalParking),
-    MAIL("Mail", Icons.Default.Mail),
+    PARKING("Parking", Icons.Default.Moped),
     HISTORY("History", Icons.Default.History)
 }
 
@@ -45,13 +43,13 @@ fun MenuUser(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
+            .padding(horizontal = 10.dp),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(5.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

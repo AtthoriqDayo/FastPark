@@ -72,22 +72,22 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
 
     // Firebase Realtime Database atau Firestore (pilih salah satu)
-    implementation(libs.firebase.database.ktx) // Untuk Realtime Database
-    // atau
-    implementation(libs.firebase.firestore.ktx) // Untuk Firestore
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore.ktx)
 
     implementation (libs.play.services.auth)
     implementation (libs.google.firebase.auth.ktx)
     implementation(libs.androidx.constraintlayout)
 
-
     implementation(libs.androidx.core.ktx.v190) // Versi bisa berbeda
     implementation(libs.androidx.lifecycle.runtime.ktx.v261) // Versi bisa berbeda
     implementation(libs.androidx.activity.compose.v170) // Versi bisa berbeda
     implementation(platform(libs.androidx.compose.bom.v20230300)) // Versi bisa berbeda
+
     implementation(libs.ui)
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
+
     implementation(libs.material3)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -97,19 +97,19 @@ dependencies {
     implementation (libs.core)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.barcode.scanning) // Cek versi terbaru
+
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
     implementation (libs.androidx.lifecycle.livedata.ktx)
     implementation (libs.androidx.lifecycle.runtime.ktx.v280)
     implementation(libs.okhttp)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio) // Engine untuk Ktor, cocok untuk coroutines
     implementation(libs.ktor.client.content.negotiation) // Untuk parsing JSON
     implementation(libs.ktor.serialization.kotlinx.json) // Plugin JSON
     implementation(libs.ktor.client.logging)
 
-
-
-
-
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
 }

@@ -21,10 +21,6 @@ import com.example.fastpark.screens.components.MenuUser
 import com.example.fastpark.viewmodel.AuthViewModel
 
 
-
-
-
-@Composable fun MailUserScreen()    = CenterTextUser("Isi Mail User Screen")
 @Composable fun HistoryUserScreen() = CenterTextUser("Isi History User Screen")
 
 @Composable
@@ -59,8 +55,7 @@ fun MainUser(
                             authViewModel = authViewModel
                         )
                     }
-                    HomeUserMenu.PARKING -> UserParkingStatusScreen()
-                    HomeUserMenu.MAIL -> MailUserScreen()
+                    HomeUserMenu.PARKING -> UserParkingStatusScreen(navController)
                     HomeUserMenu.HISTORY -> HistoryUserScreen()
                 }
             }

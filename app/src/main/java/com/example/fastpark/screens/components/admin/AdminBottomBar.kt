@@ -57,7 +57,7 @@ fun AdminBottomBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp + 16.dp), // Total tinggi termasuk offset ikon
+                .height(70.dp + 16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             Row(
@@ -71,7 +71,7 @@ fun AdminBottomBar(
                     AdminMainMenuItem(
                         imageVector = page.icon,
                         label = page.label,
-                        isSelected = selectedPage == page // <--- DIPERBAIKI DI SINI
+                        isSelected = selectedPage == page
                     ) { onPageSelected(page) }
                 }
             }
