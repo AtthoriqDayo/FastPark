@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fastpark.screens.theme.DeepRed
 
-
-
 @Composable
 fun StatusHeader(
     userName: String,

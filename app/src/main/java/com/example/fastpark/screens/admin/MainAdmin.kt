@@ -37,7 +37,7 @@ fun AdminDashboardScreen(
                         val userName = userData?.displayName ?: "User"
                         AdminScreen(userName = userName)
                     }
-                    AdminMainPage.ACCOUNT_MANAGEMENT -> AccountManagementScreen(authViewModel)
+                    AdminMainPage.ACCOUNT_MANAGEMENT -> AccountManagementScreen(navController, authViewModel)
                     AdminMainPage.SETTINGS -> SettingsAdminScreen(navController, authViewModel)
                 }
             }

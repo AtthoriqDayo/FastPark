@@ -10,13 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,8 +23,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fastpark.screens.components.HeaderUser
 import com.example.fastpark.screens.components.SearchUserBar
-import com.example.fastpark.screens.components.WorkerHeader
 import com.example.fastpark.screens.components.admin.AdminMenu
 import com.example.fastpark.screens.components.admin.AdminPage
 import com.example.fastpark.screens.components.admin.MenuAdmin
@@ -48,106 +42,80 @@ fun AdminScreen(
 
     var isSearching by remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                FloatingActionButton(
-                    onClick = { /* TODO: Aksi ketika FAB diklik */
-                        println("Floating Action Button clicked!")
-                    },
-                    containerColor = BrightRed,
-                    shape = MaterialTheme.shapes.extraLarge
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Quick Action Button",
-                        tint = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Aksi Cepat",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 12.sp
-                )
-            }
-        }
-    ) { paddingValues ->
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(paddingValues)
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(DeepRed, BrightRed)
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+                )
+                .padding(top = 50.dp, bottom = 24.dp)
         ) {
+            HeaderUser(userName)
+
+            Spacer(Modifier.height(12.dp))
+
+            SearchUserBar(
+                query = searchQuery,
+                onQueryChange = { newQuery ->
+                    searchQuery = newQuery
+                    isSearching = newQuery.isNotEmpty()
+                    // TODO: Anda bisa memicu pencarian data di sini
+                    println("Searching for: $newQuery")
+                },
+                onSearchClose = {
+                    isSearching = false
+                    searchQuery = ""
+                    println("Search bar closed.")
+                },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+
+        if (isSearching) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(DeepRed, BrightRed)
-                        ),
-                        shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
-                    )
-                    .padding(top = 50.dp, bottom = 24.dp)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                WorkerHeader(userName)
-
-                Spacer(Modifier.height(12.dp))
-
-                SearchUserBar(
-                    query = searchQuery,
-                    onQueryChange = { newQuery ->
-                        searchQuery = newQuery
-                        isSearching = newQuery.isNotEmpty()
-                        // TODO: Anda bisa memicu pencarian data di sini
-                        println("Searching for: $newQuery")
-                    },
-                    onSearchClose = {
-                        isSearching = false
-                        searchQuery = ""
-                        println("Search bar closed.")
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                Text(
+                    text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
+                    fontSize = 16.sp,
+                    color = Color.Gray
                 )
+                // TODO: Di sini Anda akan menampilkan daftar hasil pencarian, mungkin menggunakan LazyColumn
+                // Contoh: LazyColumn { items(filteredSearchResults) { item -> Text(item.name) } }
             }
-
-            if (isSearching) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = if (searchQuery.isEmpty()) "Mulai ketik untuk mencari..." else "Menampilkan hasil untuk: \"$searchQuery\"",
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                    // TODO: Di sini Anda akan menampilkan daftar hasil pencarian, mungkin menggunakan LazyColumn
-                    // Contoh: LazyColumn { items(filteredSearchResults) { item -> Text(item.name) } }
-                }
-            } else {
+        } else {
 
 
-                Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
+            Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
 
-                Spacer(Modifier.height(24.dp))
-                MenuAdmin { selectedMenu = it  }
+            Spacer(Modifier.height(24.dp))
+            MenuAdmin { selectedMenu = it  }
 
-                Spacer(Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    when (selectedMenu) {
-                        AdminMenu.HOME -> AdminPage()
-                        AdminMenu.CUSTOMER_STATS -> CustomerStatisticsScreen()
-                        AdminMenu.FINANCIAL_MANAGEMENT -> FinancialStatisticsScreen()
-                        AdminMenu.PARKING_MANAGEMENT -> ParkingManagementScreen()
-                    }
+            Spacer(Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                when (selectedMenu) {
+                    AdminMenu.HOME -> AdminPage()
+                    AdminMenu.CUSTOMER_STATS -> CustomerStatisticsScreen()
+                    AdminMenu.FINANCIAL_MANAGEMENT -> FinancialStatisticsScreen()
+                    AdminMenu.PARKING_MANAGEMENT -> ParkingManagementScreen()
                 }
             }
         }

@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,32 +38,38 @@ import com.example.fastpark.viewmodel.AuthViewModel
 
 @Composable
 fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val userData by authViewModel.userData.observeAsState()
+    val userName = userData?.displayName ?: "Pengguna"
+    val userEmail = userData?.email ?: "Tidak ada email"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(150.dp)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(DeepRed, BrightRed)
-                    )
+                    ),
+                    // PERBAIKAN DI SINI: Gunakan 'shape' dengan huruf kecil dan parameter yang benar
+                    shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(top = 30.dp),
+                    .padding(top = 30.dp)
+                    .clickable { navController.popBackStack() }, // <-- PERBAIKAN DI SINI,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "Kembali",
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -73,8 +81,6 @@ fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthVie
                 )
             }
         }
-
-        // Avatar
         Box(
             modifier = Modifier
                 .offset(y = (-40).dp)
@@ -86,12 +92,29 @@ fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthVie
                 contentDescription = "Profile",
                 modifier = Modifier
                     .size(100.dp)
-                    .background(color = Color.White, shape = RoundedCornerShape(50)),
+                    .background(color = Color.White, shape = RoundedCornerShape(50.dp)), // Gunakan 50.dp untuk bentuk lingkaran
                 tint = Color.Black
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(userName,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(userEmail,
+                fontSize = 14.sp,
+                color = Color.Gray.copy(alpha = 0.8f)
+            )
+        }
 
         // Menu buttons
         Column(
@@ -100,13 +123,17 @@ fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthVie
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SettingsButton("Profil Anda") {}
-            SettingsButton("Pengaturan Akun") {}
-            SettingsButton("Syarat & ketentuan") {}
+            SettingsButton("Profil Anda") { /* TODO: Implement navigation to profile screen */ }
+            SettingsButton("Pengaturan Akun") { /* TODO: Implement navigation to account settings */ }
+            SettingsButton("Syarat & ketentuan") { /* TODO: Implement navigation to terms & conditions */ }
             SettingsButton("Logout") {
                 authViewModel.signOut()
+                // Gunakan popUpTo dengan id rute dasar atau rute login
                 navController.navigate(AppDestinations.LOGIN_ROUTE) {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(AppDestinations.LOGIN_ROUTE) {
+                        inclusive = true // Menghapus semua rute di belakang rute login
+                    }
+                    launchSingleTop = true
                 }
             }
         }
@@ -119,7 +146,7 @@ fun SettingsButton(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp)
-            .background(Color.LightGray, RoundedCornerShape(12.dp))
+            .background(Color.DarkGray.copy(alpha = 0.3f), RoundedCornerShape(12.dp)) // Sedikit transparan
             .clickable { onClick() },
         contentAlignment = Alignment.CenterStart
     ) {
@@ -127,7 +154,8 @@ fun SettingsButton(text: String, onClick: () -> Unit) {
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp),
             fontSize = 16.sp,
-            color = Color.Black
+            color = Color.Black,
+            fontWeight = FontWeight.Medium
         )
     }
 }

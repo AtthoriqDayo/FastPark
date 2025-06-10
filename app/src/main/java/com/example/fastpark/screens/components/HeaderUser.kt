@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun WorkerHeader(userName: String) {
+fun HeaderUser(userName: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

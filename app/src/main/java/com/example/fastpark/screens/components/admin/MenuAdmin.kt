@@ -9,13 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.HomeWork
-import androidx.compose.material.icons.filled.LocalParking
-import androidx.compose.material.icons.filled.PeopleAlt
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -30,10 +29,10 @@ import androidx.compose.ui.unit.sp
 
 
 enum class AdminMenu(val label: String, val icon: ImageVector) {
-    HOME("Beranda", Icons.Default.HomeWork),
-    CUSTOMER_STATS("Menajemen Customer", Icons.Default.PeopleAlt),
-    FINANCIAL_MANAGEMENT("Manajemen Keuangan", Icons.Default.AttachMoney),
-    PARKING_MANAGEMENT("Manajemen Parkir", Icons.Default.LocalParking)
+    HOME("Dashboard", Icons.Default.HomeWork),
+    CUSTOMER_STATS("Account", Icons.Default.ManageAccounts),
+    FINANCIAL_MANAGEMENT("Financial", Icons.Default.AttachMoney),
+    PARKING_MANAGEMENT("Management", Icons.Default.DirectionsCar)
 }
 
 @Composable
@@ -43,20 +42,19 @@ fun MenuAdmin(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Iterasi melalui semua nilai di enum AdminDashboardMenuItem
                 AdminMenu.entries.forEach { item ->
                     AdminGridItem(
                         menuItem = item,
@@ -71,7 +69,7 @@ fun MenuAdmin(
 
 @Composable
 private fun AdminGridItem(
-    menuItem: AdminMenu, // Menerima objek enum
+    menuItem: AdminMenu,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -79,19 +77,17 @@ private fun AdminGridItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
-            .sizeIn(minWidth = 80.dp, minHeight = 80.dp) // Ukuran minimum untuk setiap item
             .clickable { onClick() }
-            .padding(vertical = 8.dp)
     ) {
         Icon(
-            imageVector = menuItem.icon, // Menggunakan icon dari enum
+            imageVector = menuItem.icon,
             contentDescription = menuItem.label,
-            modifier = Modifier.size(36.dp), // Ukuran ikon
-            tint = Color.Black // Warna ikon, bisa disesuaikan
+            modifier = Modifier.size(30.dp),
+            tint = Color.Black
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = menuItem.label, // Menggunakan label dari enum
+            text = menuItem.label,
             fontSize = 12.sp,
             color = Color.Black
         )

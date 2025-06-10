@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,32 +38,38 @@ import com.example.fastpark.viewmodel.AuthViewModel
 
 @Composable
 fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val userData by authViewModel.userData.observeAsState()
+    val userName = userData?.displayName ?: "Pengguna"
+    val userEmail = userData?.email ?: "Tidak ada email"
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(150.dp)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(DeepRed, BrightRed)
-                    )
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(top = 30.dp),
+                    .padding(top = 30.dp)
+                    .clickable { navController.popBackStack() }, // <-- PERBAIKAN DI SINI
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "Kembali",
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -73,8 +81,6 @@ fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewMode
                 )
             }
         }
-
-        // Avatar
         Box(
             modifier = Modifier
                 .offset(y = (-40).dp)
@@ -86,12 +92,29 @@ fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewMode
                 contentDescription = "Profile",
                 modifier = Modifier
                     .size(100.dp)
-                    .background(color = Color.White, shape = RoundedCornerShape(50)),
+                    .background(color = Color.White, shape = RoundedCornerShape(50.dp)), // Gunakan 50.dp untuk bentuk lingkaran
                 tint = Color.Black
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(userName,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(userEmail,
+                fontSize = 14.sp,
+                color = Color.Gray.copy(alpha = 0.8f)
+            )
+        }
 
         // Menu buttons
         Column(

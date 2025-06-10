@@ -1,6 +1,8 @@
 package com.example.fastpark.screens.admin
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,12 +17,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
@@ -36,6 +41,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,16 +53,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import com.example.fastpark.data.User
+import com.example.fastpark.screens.theme.BrightRed
+import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountManagementScreen(authViewModel: AuthViewModel) {
+fun AccountManagementScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel
+) {
     val users by authViewModel.allUsers.observeAsState(initial = emptyList())
     val error by authViewModel.error.observeAsState()
     val isLoading by authViewModel.isLoading.observeAsState(false)
@@ -68,6 +84,11 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Definisikan gradien untuk TopAppBar
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(DeepRed, BrightRed)
+    )
 
     LaunchedEffect(error) {
         error?.let {
@@ -83,16 +104,45 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            // PERBAIKAN DI SINI: Ganti CenterAlignedTopAppBar menjadi TopAppBar
+            TopAppBar(
+                title = {
+                    Text(
+                        "Manajemen Akun",
+                        // Tambahkan modifier fillMaxWidth dan textAlign.Start untuk rata kiri
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start, // <-- Perbaikan untuk rata kiri
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = Color.White
+                        )
+                    }
+                },
+                modifier = Modifier.background(gradientBrush),
+                colors = TopAppBarDefaults.topAppBarColors( // <-- Gunakan topAppBarColors
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Manajemen Akun", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -101,20 +151,30 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
                     dialogMode = "create"
                     showDialog = true
                 },
-                enabled = !isLoading
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(containerColor = DeepRed), // PERBAIKAN DI SINI
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.PersonAdd, contentDescription = "Tambah Akun")
+                Icon(Icons.Default.PersonAdd, contentDescription = "Tambah Akun", tint = Color.White)
                 Spacer(Modifier.width(8.dp))
-                Text("Tambah Akun Baru")
+                Text("Tambah Akun Baru", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(50.dp))
-                Text("Memuat data...")
+                CircularProgressIndicator(
+                    modifier = Modifier.size(50.dp),
+                    color = DeepRed
+                )
+                Text("Memuat data...", color = Color.Gray)
             } else if (users.isEmpty()) {
-                Text("Tidak ada akun pengguna yang terdaftar.", color = Color.Gray)
+                Text(
+                    "Tidak ada akun pengguna yang terdaftar.",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     items(users) { user ->
@@ -125,12 +185,12 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
                                 dialogMode = "edit"
                                 showDialog = true
                             },
-                            onDelete = { deletedUser -> //
+                            onDelete = { deletedUser ->
                                 userToDelete = deletedUser
                                 showDeleteConfirmDialog = true
                             }
                         )
-                        Divider()
+                        Divider(color = Color.LightGray, thickness = 1.dp)
                     }
                 }
             }
@@ -143,7 +203,7 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
             mode = dialogMode,
             onDismiss = { showDialog = false },
             onConfirm = { userToProcess, password, role ->
-                scope.launch { // <<< Meluncurkan coroutine untuk memanggil suspend fun
+                scope.launch {
                     if (dialogMode == "create") {
                         if (userToProcess.email.isNullOrEmpty() || password.isNullOrEmpty() || userToProcess.displayName.isNullOrEmpty()) {
                             snackbarHostState.showSnackbar(
@@ -178,7 +238,7 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
             confirmButton = {
                 Button(
                     onClick = {
-                        scope.launch { // <<< Meluncurkan coroutine untuk memanggil suspend fun
+                        scope.launch {
                             userToDelete?.let {
                                 authViewModel.deleteUser(it.uid)
                                 Log.d("AccountManagement", "Menghapus user: ${it.displayName}")
@@ -187,9 +247,10 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
                             userToDelete = null
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrightRed), // PERBAIKAN DI SINI
                     enabled = !isLoading
                 ) {
-                    Text("Hapus")
+                    Text("Hapus", color = Color.White)
                 }
             },
             dismissButton = {
@@ -198,7 +259,8 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
                         showDeleteConfirmDialog = false
                         userToDelete = null
                     },
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Gray) // PERBAIKAN DI SINI
                 ) {
                     Text("Batal")
                 }
@@ -207,29 +269,57 @@ fun AccountManagementScreen(authViewModel: AuthViewModel) {
     }
 }
 
-// UserAccountItem dan UserAccountDialog (tetap sama seperti yang Anda berikan)
-// Pastikan Composable ini berada di dalam file yang sama, atau diimpor dengan benar.
-
 @Composable
 fun UserAccountItem(user: User, onEdit: (User) -> Unit, onDelete: (User) -> Unit) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column {
-            Text("Nama: ${user.displayName ?: "N/A"}", style = MaterialTheme.typography.titleMedium)
-            Text("Email: ${user.email ?: "N/A"}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            Text("Role: ${user.role ?: "N/A"}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-        }
-        Row {
-            IconButton(onClick = { onEdit(user) }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Nama: ${user.displayName ?: "N/A"}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.DarkGray
+                )
+                Text(
+                    "Email: ${user.email ?: "N/A"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                Text(
+                    "Role: ${user.role ?: "N/A"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
             }
-            IconButton(onClick = { onDelete(user) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Hapus")
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = { onEdit(user) }) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = { onDelete(user) }) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Hapus",
+                        tint = BrightRed
+                    )
+                }
             }
         }
     }
@@ -256,11 +346,15 @@ fun UserAccountDialog(
                 .fillMaxWidth()
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 Text(
                     text = if (mode == "create") "Buat Akun Baru" else "Edit Akun",
                     style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = DeepRed,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -268,25 +362,28 @@ fun UserAccountDialog(
                     value = displayName,
                     onValueChange = { displayName = it },
                     label = { Text("Nama Lengkap") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     enabled = mode == "create",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 if (mode == "create") {
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Password") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(12.dp))
                 }
                 ExposedDropdownMenuBox(
                     expanded = expandedDropdown,
@@ -300,8 +397,8 @@ fun UserAccountDialog(
                         label = { Text("Peran") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
                     )
                     ExposedDropdownMenu(
                         expanded = expandedDropdown,
@@ -319,28 +416,31 @@ fun UserAccountDialog(
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Batal")
+                        Text("Batal", color = Color.Gray)
                     }
                     Spacer(Modifier.width(8.dp))
-                    Button(onClick = {
-                        val userToConfirm = User(
-                            uid = user?.uid ?: "",
-                            displayName = displayName,
-                            email = email,
-                            role = role
-                        )
-                        // Pastikan password hanya dilewatkan jika mode "create" dan password tidak kosong
-                        val passwordToPass = if (mode == "create" && password.isNotEmpty()) password else null
-                        onConfirm(userToConfirm, passwordToPass, role)
-                    }) {
-                        Text(if (mode == "create") "Buat" else "Simpan")
+                    Button(
+                        onClick = {
+                            val userToConfirm = User(
+                                uid = user?.uid ?: "",
+                                displayName = displayName,
+                                email = email,
+                                role = role
+                            )
+                            val passwordToPass = if (mode == "create" && password.isNotEmpty()) password else null
+                            onConfirm(userToConfirm, passwordToPass, role)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = DeepRed), // PERBAIKAN DI SINI
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(if (mode == "create") "Buat" else "Simpan", color = Color.White)
                     }
                 }
             }

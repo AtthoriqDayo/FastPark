@@ -54,7 +54,8 @@ fun UserParkingStatusScreen(
                 title = {
                     Text(
                         "Status Parkir Saya",
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White // Pastikan judul berwarna putih untuk kontras
                     )
                 },
                 navigationIcon = {
@@ -74,11 +75,13 @@ fun UserParkingStatusScreen(
             )
         }
     ) { paddingValues ->
+        // PERBAIKAN UTAMA: Pastikan paddingValues diterapkan sebagai modifier PERTAMA
+        // pada root composable di dalam konten Scaffold.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(paddingValues)
+                .padding(paddingValues) // <--- PASTIKAN INI ADA DAN DITERAPKAN DENGAN BENAR
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
