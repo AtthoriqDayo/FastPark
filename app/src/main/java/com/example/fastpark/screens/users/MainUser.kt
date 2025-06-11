@@ -21,7 +21,6 @@ import com.example.fastpark.screens.components.MenuUser
 import com.example.fastpark.viewmodel.AuthViewModel
 
 
-@Composable fun HistoryUserScreen() = CenterTextUser("Isi History User Screen")
 
 @Composable
 private fun CenterTextUser(text: String) = Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -56,7 +55,7 @@ fun MainUser(
                         )
                     }
                     HomeUserMenu.PARKING -> UserParkingStatusScreen(navController)
-                    HomeUserMenu.HISTORY -> HistoryUserScreen()
+                    HomeUserMenu.HISTORY -> HistoryScreen()
                 }
             }
             MenuUser(selectedMenu = selectedPage) { newSelectedMenu ->

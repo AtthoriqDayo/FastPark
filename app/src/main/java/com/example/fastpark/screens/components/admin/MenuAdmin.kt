@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.HomeWork
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.Card
@@ -32,7 +31,7 @@ enum class AdminMenu(val label: String, val icon: ImageVector) {
     HOME("Dashboard", Icons.Default.HomeWork),
     CUSTOMER_STATS("Account", Icons.Default.ManageAccounts),
     FINANCIAL_MANAGEMENT("Financial", Icons.Default.AttachMoney),
-    PARKING_MANAGEMENT("Management", Icons.Default.DirectionsCar)
+    //PARKING_MANAGEMENT("Management", Icons.Default.DirectionsCar)
 }
 
 @Composable

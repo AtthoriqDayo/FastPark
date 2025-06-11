@@ -42,6 +42,7 @@ android {
     }
 }
 
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.storage)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,6 +76,7 @@ dependencies {
     // Firebase Realtime Database atau Firestore (pilih salah satu)
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.functions.ktx)
 
     implementation (libs.play.services.auth)
     implementation (libs.google.firebase.auth.ktx)
@@ -111,5 +114,8 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.accompanist.webview)
+    implementation (libs.mpandroidchart)
+
 
 }

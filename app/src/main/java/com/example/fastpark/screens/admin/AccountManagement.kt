@@ -45,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +67,7 @@ import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountManagementScreen(
@@ -73,8 +75,8 @@ fun AccountManagementScreen(
     authViewModel: AuthViewModel
 ) {
     val users by authViewModel.allUsers.observeAsState(initial = emptyList())
-    val error by authViewModel.error.observeAsState()
-    val isLoading by authViewModel.isLoading.observeAsState(false)
+    val error by authViewModel.error.collectAsState()
+    val isLoading by authViewModel.isLoading.collectAsState(false)
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<User?>(null) }

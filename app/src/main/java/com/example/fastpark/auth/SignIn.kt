@@ -56,6 +56,8 @@ import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState // Pastikan import ini ada
+
 
 
 private const val YOUR_WEB_CLIENT_ID = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com"
@@ -69,7 +71,7 @@ fun SignInScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val errorMessage by authViewModel.error.observeAsState()
+    val errorMessage by authViewModel.error.collectAsState()
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

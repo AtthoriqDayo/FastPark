@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fastpark.screens.components.BannerSection
+import androidx.navigation.NavHostController
 import com.example.fastpark.screens.components.HeaderUser
 import com.example.fastpark.screens.components.HomeMenu
 import com.example.fastpark.screens.components.MenuGrid
@@ -35,6 +35,7 @@ import com.example.fastpark.screens.theme.DeepRed
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    navController: NavHostController,
     userName: String = "User",
 ) {
     var selectedMenu by remember { mutableStateOf(HomeMenu.PARKING) }
@@ -99,9 +100,9 @@ fun HomeScreen(
         } else {
 
 
-            Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
+            //Spacer(Modifier.height(20.dp)) // Jarak antara header dan BalanceCard
 
-            BannerSection() // BalanceCard Anda
+            //BannerSection() // BalanceCard Anda
 
             Spacer(Modifier.height(20.dp))
 
@@ -116,22 +117,16 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 when (selectedMenu) {
-                    HomeMenu.PARKING -> ParkingScreen()
-                    HomeMenu.MAIL    -> MailScreen()
-                    HomeMenu.HISTORY -> HistoryScreen()
-                    HomeMenu.CHART   -> ChartScreen()
+                    HomeMenu.PARKING -> ParkingManagementScreen(navController = navController)
+                    HomeMenu.HISTORY -> WorkerHistoryScreen()
+                    HomeMenu.CHART   -> ParkingStatsScreen()
                 }
             }
         }
     }
 }
 
-@Composable fun ParkingScreen() = CenterText("Isi Parking")
-@Composable fun MailScreen()    = CenterText("Isi Mail")
-@Composable fun HistoryScreen() = CenterText("Isi History")
-@Composable fun ChartScreen()   = CenterText("Isi Chart")
 
-@Composable
-private fun CenterText(text: String) = Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Text(text)
-}
+
+
+

@@ -35,7 +35,7 @@ fun WorkerDashboardScreen(
                     MainPage.HOME -> {
                         val userData by authViewModel.userData.observeAsState()
                         val userName = userData?.displayName ?: "User"
-                        HomeScreen(userName = userName)
+                        HomeScreen(userName = userName, navController = navController)
                     }
                     MainPage.SCAN     -> ScanScreen()
                     MainPage.SETTINGS -> SettingsScreen(navController = navController, authViewModel = authViewModel/* navController, authViewModel */)

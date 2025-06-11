@@ -115,7 +115,7 @@ fun AdminScreen(
                     AdminMenu.HOME -> AdminPage()
                     AdminMenu.CUSTOMER_STATS -> CustomerStatisticsScreen()
                     AdminMenu.FINANCIAL_MANAGEMENT -> FinancialStatisticsScreen()
-                    AdminMenu.PARKING_MANAGEMENT -> ParkingManagementScreen()
+                   // AdminMenu.PARKING_MANAGEMENT -> ParkingManagementScreen()
                 }
             }
         }

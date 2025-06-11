@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
@@ -16,7 +17,11 @@ import com.example.fastpark.auth.SignInScreen
 import com.example.fastpark.auth.SignUpScreen
 import com.example.fastpark.data.User
 import com.example.fastpark.screens.admin.AdminDashboardScreen
+import com.example.fastpark.screens.users.AboutAppScreen
+import com.example.fastpark.screens.users.AccountSecurityScreen
+import com.example.fastpark.screens.users.EditProfileScreen
 import com.example.fastpark.screens.users.MainUser
+import com.example.fastpark.screens.users.NotificationSettingsScreen
 import com.example.fastpark.screens.users.UserSettingScreen
 import com.example.fastpark.screens.users.UserShowQrScreen
 import com.example.fastpark.screens.workers.WorkerDashboardScreen
@@ -24,13 +29,21 @@ import com.example.fastpark.viewmodel.AuthViewModel
 import com.example.fastpark.viewmodel.AuthViewModelFactory
 import com.google.firebase.auth.FirebaseUser
 
+
 object AppDestinations {
     const val LOGIN_ROUTE = "signin"
     const val SIGNUP_ROUTE = "signup"
+
     const val USER_HOME_ROUTE = "user_home"
     const val USER_SETTINGS_ROUTE = "user_settings"
     const val USER_SHOW_QR_ROUTE = "user_show_qr"
+    const val EDIT_PROFILE_ROUTE = "edit_profile"
+    const val NOTIFICATION_SETTINGS_ROUTE = "notification_settings"
+    const val ACCOUNT_SECURITY_ROUTE = "account_security"
+    const val ABOUT_APP_ROUTE = "about_app"
+
     const val WORKER_HOME_ROUTE = "worker_home"
+
     const val ADMIN_HOME_ROUTE = "admin_home"
 }
 
@@ -47,7 +60,7 @@ fun MainScreen() {
 
     val currentUserSnapshot by authViewModel.currentUser.observeAsState()
     val userDataSnapshot by authViewModel.userData.observeAsState()
-    val isLoading by authViewModel.isLoading.observeAsState(initial = false) // Amati loading state
+    val isLoading by authViewModel.isLoading.collectAsState(initial = false) // Amati loading state
 
     LaunchedEffect(currentUserSnapshot, userDataSnapshot, isLoading) {
         val currentUser = currentUserSnapshot
@@ -121,6 +134,24 @@ fun MainScreen() {
         }
         composable(AppDestinations.USER_HOME_ROUTE) {
             UserHomeScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable(AppDestinations.USER_SETTINGS_ROUTE) {
+            UserSettingScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable(AppDestinations.USER_SHOW_QR_ROUTE) {
+            UserShowQrScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable(AppDestinations.EDIT_PROFILE_ROUTE) {
+            EditProfileScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable(AppDestinations.ABOUT_APP_ROUTE) {
+            AboutAppScreen(navController = navController)
+        }
+        composable(AppDestinations.ACCOUNT_SECURITY_ROUTE) {
+            AccountSecurityScreen(navController = navController)
+        }
+        composable(AppDestinations.NOTIFICATION_SETTINGS_ROUTE) {
+            NotificationSettingsScreen(navController = navController)
         }
         composable(AppDestinations.WORKER_HOME_ROUTE) {
             WorkerHomeScreen(navController = navController, authViewModel = authViewModel)

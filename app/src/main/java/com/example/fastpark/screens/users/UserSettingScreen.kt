@@ -130,10 +130,10 @@ fun UserSettingScreen(navController: NavHostController, authViewModel: AuthViewM
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            UserSettingButton("Profil Anda") { /* TODO: Navigasi ke edit profil pengguna */ }
-            UserSettingButton("Notifikasi") { /* TODO: Navigasi ke pengaturan notifikasi */ }
-            UserSettingButton("Keamanan Akun") { /* TODO: Navigasi ke pengaturan keamanan */ }
-            UserSettingButton("Tentang Aplikasi") { /* TODO: Navigasi ke halaman tentang */ }
+            UserSettingButton("Profil Anda") {navController.navigate(AppDestinations.EDIT_PROFILE_ROUTE) }
+            UserSettingButton("Notifikasi") {navController.navigate(AppDestinations.NOTIFICATION_SETTINGS_ROUTE) }
+            UserSettingButton("Keamanan Akun") {navController.navigate(AppDestinations.ACCOUNT_SECURITY_ROUTE) }
+            UserSettingButton("Tentang Aplikasi") {navController.navigate(AppDestinations.ABOUT_APP_ROUTE) }
             UserSettingButton("Logout") {
                 authViewModel.signOut()
                 navController.navigate(AppDestinations.LOGIN_ROUTE) {

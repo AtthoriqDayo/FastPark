@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fastpark.R
 
-enum class HomeMenu { PARKING, MAIL, HISTORY, CHART }
+enum class HomeMenu { PARKING, HISTORY, CHART }
 
 @Composable
 fun MenuGrid(
@@ -52,12 +52,8 @@ fun MenuGrid(
                     modifier = Modifier.weight(1f),
                     onClick = { onMenuClick(HomeMenu.PARKING) }
                 )
-                HomeMenuItem(
-                    iconResId = R.drawable.mail,
-                    label = "Mail",
-                    modifier = Modifier.weight(1f),
-                    onClick = { onMenuClick(HomeMenu.MAIL) }
-                )
+
+
                 HomeMenuItem(
                     iconResId = R.drawable.history,
                     label = "History",
