@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,6 +57,7 @@ import com.example.fastpark.screens.theme.DeepRed
 import com.example.fastpark.viewmodel.AuthViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
+import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.Dispatchers
@@ -174,7 +174,7 @@ private fun generateQrCodeBitmapWithLogo(
     height: Int,
     context: Context,
     logoResId: Int,
-    logoMarginInPx: Int = 10
+    logoMarginInPx: Int = 30
 ): Bitmap? {
     val qrCodeWriter = QRCodeWriter()
     try {
@@ -197,15 +197,29 @@ private fun generateQrCodeBitmapWithLogo(
             val originalLogoHeight = originalLogoBitmap.height
             if (originalLogoWidth == 0 || originalLogoHeight == 0) return qrBitmap
 
-            val targetLogoWidth = width / 6
+            val targetLogoWidth = width / 8
             val targetLogoHeight = (originalLogoHeight.toFloat() / originalLogoWidth.toFloat() * targetLogoWidth).toInt()
             if (targetLogoWidth <= 0 || targetLogoHeight <= 0) return qrBitmap
 
             val scaledLogoBitmap = originalLogoBitmap.scale(targetLogoWidth, targetLogoHeight)
-            val canvas = Canvas(qrBitmap)
-            val xLogo = (width - targetLogoWidth) / 2f
-            val yLogo = (height - targetLogoHeight) / 2f
 
+            // --- 1. Calculate the ideal top-left position for the logo,
+            //         which also serves as the center point for the background box. ---
+            // This is the (X,Y) where the logo *would* be if it were perfectly centered
+            // and the box was drawn symmetrically around it.
+            val idealLogoX = (width - targetLogoWidth) / 2f
+            val idealLogoY = (height - targetLogoHeight) / 2f
+
+            // --- 2. Define the fine-tuning offsets for the LOGO *relative to its ideal position* ---
+            // Adjust these values by trial and error.
+            // Positive value moves logo right/down *within* the box. Negative value moves left/up.
+            val logoOffsetX = -70f // Example: Move logo 5 pixels to the left inside the box
+            val logoOffsetY = -70f // Example: Move logo 2 pixels upwards inside the box
+
+            val canvas = Canvas(qrBitmap)
+
+            // --- 3. Draw the background box using the *ideal* centered position ---
+            // The box's center will remain fixed.
             if (logoMarginInPx > 0) {
                 val paintBackground = Paint().apply {
                     color = AndroidColor.WHITE
@@ -213,20 +227,28 @@ private fun generateQrCodeBitmapWithLogo(
                     isAntiAlias = true
                 }
                 val bgRect = RectF(
-                    xLogo - logoMarginInPx,
-                    yLogo - logoMarginInPx,
-                    xLogo + targetLogoWidth + logoMarginInPx,
-                    yLogo + targetLogoHeight + logoMarginInPx
+                    // These define the top-left of the background box
+                    idealLogoX - logoMarginInPx,
+                    idealLogoY - logoMarginInPx,
+                    // These define the bottom-right of the background box
+                    idealLogoX + targetLogoWidth + logoMarginInPx,
+                    idealLogoY + targetLogoHeight + logoMarginInPx
                 )
                 val cornerRadius = logoMarginInPx * 0.5f
                 canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, paintBackground)
             }
 
-            canvas.drawBitmap(scaledLogoBitmap, xLogo, yLogo, null)
+            // --- 4. Draw the scaled logo at its *adjusted* position ---
+            // This applies the offsets to the logo itself, while the box stays put.
+            val finalLogoDrawX = idealLogoX + logoOffsetX
+            val finalLogoDrawY = idealLogoY + logoOffsetY
+
+            canvas.drawBitmap(scaledLogoBitmap, finalLogoDrawX, finalLogoDrawY, null)
         }
         return qrBitmap
-    } catch (e: Exception) {
-        Log.e("generateQrCodeWithLogo", "Error generating QR code with logo: ${e.message}", e)
+
+    } catch (e: WriterException) {
+        e.printStackTrace()
         return null
     }
 }
