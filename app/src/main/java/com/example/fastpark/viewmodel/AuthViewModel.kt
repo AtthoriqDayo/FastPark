@@ -71,6 +71,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _googleSignInRequiresProfileCompletion = MutableStateFlow<Boolean>(false)
+    val googleSignInRequiresProfileCompletion: StateFlow<Boolean> = _googleSignInRequiresProfileCompletion.asStateFlow()
+
     // State untuk Proses Pembayaran Duitku
 
     // State untuk QR Code Dinamis
@@ -130,7 +133,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- FUNGSI AUTENTIKASI & MANAJEMEN USER ---
 
-    fun signUpWithEmailPassword(email: String, pass: String, displayName: String) {
+    fun signUpWithEmailPassword(email: String, pass: String, displayName: String, noPlat: String) { // <- Tambah noPlat
         _isLoading.value = true
         _error.value = null
         viewModelScope.launch(Dispatchers.IO) {
@@ -143,10 +146,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         email = firebaseUser.email,
                         displayName = displayName,
                         role = "user",
-
+                        noPlat = noPlat // <- Simpan noPlat
                     )
                     saveUserToFirestore(newUser)
-                    // Listener AuthState akan menangani pembaruan _currentUser dan _userData
                 } else {
                     _error.value = "Gagal membuat pengguna."
                 }
@@ -157,7 +159,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
     fun signInWithEmailPassword(email: String, pass: String) {
         _isLoading.value = true
         _error.value = null
@@ -183,15 +184,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (firebaseUser != null) {
                     val userDoc = db.collection("users").document(firebaseUser.uid).get().await()
                     if (!userDoc.exists()) {
-                        val newUser = User(
-                            uid = firebaseUser.uid,
-                            email = firebaseUser.email,
-                            displayName = firebaseUser.displayName,
-                            role = "user"
-                        )
-                        saveUserToFirestore(newUser)
+                        // PENGGUNA BARU DARI GOOGLE!
+                        // Jangan simpan dulu, picu UI untuk meminta noPlat.
+                        _googleSignInRequiresProfileCompletion.value = true
                     }
-                    // Listener AuthState akan menangani sisanya
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Terjadi kesalahan saat login dengan Google."
@@ -199,6 +195,40 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = false
             }
         }
+    }
+
+    // AuthViewModel.kt
+
+    fun completeGoogleSignUp(noPlat: String) {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser == null) {
+            _error.value = "Sesi pengguna tidak ditemukan. Silakan coba lagi."
+            return
+        }
+
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val newUser = User(
+                    uid = firebaseUser.uid,
+                    email = firebaseUser.email,
+                    displayName = firebaseUser.displayName,
+                    role = "user",
+                    noPlat = noPlat //
+                )
+                saveUserToFirestore(newUser)
+                // Setelah berhasil, reset state
+                _googleSignInRequiresProfileCompletion.value = false
+            } catch (e: Exception) {
+                _error.value = "Gagal menyimpan profil: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun resetGoogleSignUpCompletionState() {
+        _googleSignInRequiresProfileCompletion.value = false
     }
 
     fun signOut() {

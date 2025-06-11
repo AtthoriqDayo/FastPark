@@ -117,7 +117,7 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 when (selectedMenu) {
-                    HomeMenu.PARKING -> ParkingManagementScreen(navController = navController)
+                    HomeMenu.PARKING -> ParkingManagementScreen()
                     HomeMenu.HISTORY -> WorkerHistoryScreen()
                     HomeMenu.CHART   -> ParkingStatsScreen()
                 }

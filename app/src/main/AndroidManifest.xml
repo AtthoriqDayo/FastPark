@@ -16,6 +16,7 @@
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.FastPark"
+        android:enableOnBackInvokedCallback="true"
         >
         <activity
             android:name=".MainActivity"

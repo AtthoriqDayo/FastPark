@@ -1,4 +1,4 @@
-package com.example.fastpark.screens.users
+package com.example.fastpark.screens.components.SettingScreen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -75,6 +75,8 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var noPlat by remember { mutableStateOf("") }
+
 
     val errorMessage by authViewModel.error.collectAsState()
     val context = LocalContext.current
@@ -155,6 +157,13 @@ fun SignUpScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            OutlinedTextField(
+                value = noPlat,
+                onValueChange = { noPlat = it; authViewModel.clearError() },
+                label = { Text("Nomor Plat Kendaraan") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it, color = Color.Red, fontSize = 12.sp)
@@ -164,7 +173,7 @@ fun SignUpScreen(
 
             Button(
                 onClick = {
-                    if (username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                    if (username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() || noPlat.isBlank()) {
                         authViewModel.clearError()
                         return@Button
                     }
@@ -182,7 +191,7 @@ fun SignUpScreen(
                     }
 
                     coroutineScope.launch {
-                        authViewModel.signUpWithEmailPassword(email, password, username)
+                        authViewModel.signUpWithEmailPassword(email, password, username, noPlat)
                         if (authViewModel.error.value == null) {
                             onSignUpSuccess()
                         }

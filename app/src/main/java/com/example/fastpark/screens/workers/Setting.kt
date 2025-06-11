@@ -123,9 +123,9 @@ fun SettingsScreen(navController: NavHostController, authViewModel: AuthViewMode
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SettingsButton("Profil Anda") {}
-            SettingsButton("Pengaturan Akun") {}
-            SettingsButton("Syarat & ketentuan") {}
+            SettingsButton("Profil Anda") {navController.navigate(AppDestinations.EDIT_PROFILE_ROUTE) }
+            SettingsButton("Keamanan Akun") {navController.navigate(AppDestinations.ACCOUNT_SECURITY_ROUTE) }
+            SettingsButton("Tentang Aplikasi") {navController.navigate(AppDestinations.ABOUT_APP_ROUTE) }
             SettingsButton("Logout") {
                 authViewModel.signOut()
                 navController.navigate(AppDestinations.LOGIN_ROUTE) {

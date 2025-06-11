@@ -123,9 +123,9 @@ fun SettingsAdminScreen(navController: NavHostController, authViewModel: AuthVie
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SettingsButton("Profil Anda") { /* TODO: Implement navigation to profile screen */ }
-            SettingsButton("Pengaturan Akun") { /* TODO: Implement navigation to account settings */ }
-            SettingsButton("Syarat & ketentuan") { /* TODO: Implement navigation to terms & conditions */ }
+            SettingsButton("Profil Anda") {navController.navigate(AppDestinations.EDIT_PROFILE_ROUTE) }
+            SettingsButton("Keamanan Akun") {navController.navigate(AppDestinations.ACCOUNT_SECURITY_ROUTE) }
+            SettingsButton("Tentang Aplikasi") {navController.navigate(AppDestinations.ABOUT_APP_ROUTE) }
             SettingsButton("Logout") {
                 authViewModel.signOut()
                 // Gunakan popUpTo dengan id rute dasar atau rute login

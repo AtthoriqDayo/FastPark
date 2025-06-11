@@ -399,6 +399,7 @@ fun UserAccountDialog(
                         label = { Text("Peran") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
                         modifier = Modifier
+                            .menuAnchor()
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     )
