@@ -59,6 +59,7 @@ private const val DIALOG_TITLE = "Detail Riwayat Parkir"
 private const val CLOSE_BUTTON = "Tutup"
 private const val UNKNOWN_LOCATION = "Lokasi Tidak Diketahui"
 private const val UNAVAILABLE_DATE = "N/A"
+private const val UNAVAILABLE_PlAT = "N/A"
 private const val ENTRY_TIME_LABEL = "Waktu Masuk: "
 private const val EXIT_TIME_LABEL = "Waktu Keluar: "
 private const val TOTAL_FEE_LABEL = "Total Biaya"
@@ -88,9 +89,10 @@ fun WorkerHistoryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(SCREEN_TITLE, color = Color.White) },
+                title = { Text(SCREEN_TITLE, color = DeepRed) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = DeepRed
+                    containerColor = Color.Transparent,
+
                 )
             )
         }
@@ -167,7 +169,7 @@ private fun HistoryItem(session: ParkingSession, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = session.parkingArea ?: UNKNOWN_LOCATION,
+                text = session.noPlat ?: UNAVAILABLE_PlAT,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = DeepRed
@@ -203,9 +205,7 @@ private fun HistoryItem(session: ParkingSession, onClick: () -> Unit) {
     }
 }
 
-/**
- * Composable untuk dialog yang menampilkan detail lengkap dari sesi parkir.
- */
+
 @Composable
 private fun HistoryDetailDialog(session: ParkingSession, onDismiss: () -> Unit) {
     AlertDialog(
@@ -213,13 +213,12 @@ private fun HistoryDetailDialog(session: ParkingSession, onDismiss: () -> Unit) 
         title = { Text(DIALOG_TITLE, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Menampilkan semua field yang relevan dari data class ParkingSession
                 DetailRow("ID Sesi:", session.sessionId)
-                //DetailRow("Plat Nomor:", session.vehiclePlate ?: "-")
+                DetailRow("Plat Nomor:", session.noPlat ?: "-")
                 DetailRow("Lokasi Parkir:", session.parkingArea ?: UNKNOWN_LOCATION)
                 DetailRow("Waktu Masuk:", formatTimestamp(session.entryTimestamp))
                 DetailRow("Waktu Keluar:", formatTimestamp(session.exitTimestamp))
-                //DetailRow("Metode Pembayaran:", session.paymentMethod ?: "-")
+                DetailRow("Nama Pelanggan:", session.displayName ?: "-")
                 DetailRow("Status:", session.status)
                 DetailRow("Total Biaya:", formatCurrency(session.feeCalculated), isHighlight = true)
             }
@@ -232,9 +231,7 @@ private fun HistoryDetailDialog(session: ParkingSession, onDismiss: () -> Unit) 
     )
 }
 
-/**
- * Helper composable untuk menampilkan baris detail (Label dan Value) di dalam dialog.
- */
+
 @Composable
 private fun DetailRow(label: String, value: String, isHighlight: Boolean = false) {
     Row {

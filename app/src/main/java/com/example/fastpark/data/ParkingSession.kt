@@ -15,6 +15,8 @@ data class ParkingSession(
     val uid: String = "",
     val status: String = "active",
     val noPlat: String? = "",
+    val displayName: String? = "",
+
 
     // Informasi Area & Tarif
     val parkingArea: String = "", // Contoh: "MainLot-A1"
@@ -39,6 +41,7 @@ data class ParkingSession(
      * Firestore menggunakannya untuk mengubah data dari database menjadi objek Kotlin.
      */
     constructor() : this(
+        displayName = null,
         noPlat = null,
         uid = "",
         status = "active",

@@ -98,8 +98,8 @@ fun ParkingManagementScreen(
             CenterAlignedTopAppBar(
                 title = { Text(R.string.screen_title) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = DeepRed,
-                    titleContentColor = Color.White
+                    containerColor = Color.Transparent,
+                    titleContentColor = DeepRed
                 )
             )
         }
