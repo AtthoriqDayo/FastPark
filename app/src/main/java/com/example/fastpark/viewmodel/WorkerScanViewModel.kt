@@ -61,7 +61,7 @@ class WorkerScanViewModel : ViewModel() {
 
     // GANTI DENGAN URL & API KEY ANDA YANG SEBENARNYA!
     private val VALIDATE_TOKEN_URL = "https://validatedynamicqrtoken-tmasj2diia-uc.a.run.app"
-    private val API_KEY = "AIzaSyDY-ivKK4yMzTRoW-aHXeVUQtF3NHAw7vM" // Ganti dengan API Key Anda
+    private val API_KEY = "" //
 
     // --- Bagian State Management (tetap sama) ---
 
