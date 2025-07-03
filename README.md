@@ -1,3 +1,2 @@
 # FastPark
-gabut aja sih
-mungkin bisaa aja
+It just a simple parking app for my college projects
