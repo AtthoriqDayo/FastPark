@@ -11,6 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.fastpark.BuildConfig
 import com.example.fastpark.data.User
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -51,7 +52,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val googleSignInClient: GoogleSignInClient
 
     // Konfigurasi
-    private val webClientId = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com" // Pastikan ini benar
     private val TOKEN_REFRESH_INTERVAL_SECONDS = 55L
 
     // LiveData & StateFlow untuk data utama
@@ -91,7 +91,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Konfigurasi Google Sign-In Client
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(webClientId)
+            .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(application, gso)

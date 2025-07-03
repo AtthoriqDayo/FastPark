@@ -30,8 +30,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.fastpark.BuildConfig
 import com.example.fastpark.R
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
@@ -56,11 +57,7 @@ import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.collectAsState // Pastikan import ini ada
 
-
-
-private const val YOUR_WEB_CLIENT_ID = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com"
 
 @Composable
 fun SignInScreen(
@@ -169,7 +166,7 @@ fun SignInScreen(
                         .setGoogleIdTokenRequestOptions(
                             BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                                 .setSupported(true)
-                                .setServerClientId(YOUR_WEB_CLIENT_ID)
+                                .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                                 .setFilterByAuthorizedAccounts(false)
                                 .build()
                         )

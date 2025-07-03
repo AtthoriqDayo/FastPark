@@ -1,9 +1,5 @@
-// File: viewmodel/WorkerScanViewModel.kt (DIGABUNGKAN)
 package com.example.fastpark.viewmodel
 
-// Import Ktor
-// Import kotlinx.serialization
-// Import Coroutines
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +21,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.example.fastpark.BuildConfig // <-- Jangan lupa import
+
+
 
 // Data class untuk request body, bisa diletakkan di sini atau di file model terpisah
 @Serializable
@@ -61,7 +60,7 @@ class WorkerScanViewModel : ViewModel() {
 
     // GANTI DENGAN URL & API KEY ANDA YANG SEBENARNYA!
     private val VALIDATE_TOKEN_URL = "https://validatedynamicqrtoken-tmasj2diia-uc.a.run.app"
-    private val API_KEY = "AIzaSyDY-ivKK4yMzTRoW-aHXeVUQtF3NHAw7vM" // Ganti dengan API Key Anda
+    private val API_KEY = BuildConfig.FASTPARK_API_KEY
 
     // --- Bagian State Management (tetap sama) ---
 

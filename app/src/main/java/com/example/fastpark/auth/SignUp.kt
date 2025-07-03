@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.fastpark.BuildConfig
 import com.example.fastpark.R
 import com.example.fastpark.screens.theme.BrightRed
 import com.example.fastpark.screens.theme.DeepRed
@@ -61,8 +62,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-
-private const val YOUR_SIGNUP_WEB_CLIENT_ID = "122734914182-vioeetcrl9k7kmrks3sm2v1n1htplcfn.apps.googleusercontent.com"
 
 @Composable
 fun SignUpScreen(
@@ -214,7 +213,7 @@ fun SignUpScreen(
                         .setGoogleIdTokenRequestOptions(
                             BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                                 .setSupported(true)
-                                .setServerClientId(YOUR_SIGNUP_WEB_CLIENT_ID)
+                                .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                                 .setFilterByAuthorizedAccounts(false)
                                 .build()
                         )
